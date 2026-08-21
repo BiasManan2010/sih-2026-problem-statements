@@ -86,7 +86,7 @@ export default function HomePage() {
             <p className="mx-auto max-w-2xl text-copy-18 text-muted-foreground">
               Explore, filter, search and shortlist all{" "}
               <strong className="text-foreground">{stats.total} problem statements</strong>{" "}
-              — {stats.software} software and {stats.hardware} hardware challenges — with fast keyboard search and instant insights.
+              - {stats.software} software and {stats.hardware} hardware challenges - with fast keyboard search and instant insights.
             </p>
           </div>
 

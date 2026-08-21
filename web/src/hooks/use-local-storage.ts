@@ -17,7 +17,7 @@ export function useLocalStorage<T>(key: string, initial: T) {
     try {
       window.localStorage.setItem(key, JSON.stringify(value));
     } catch {
-      // storage full or unavailable — ignore
+      // storage full or unavailable - ignore
     }
   }, [key, value]);
 

@@ -30,15 +30,15 @@ export function PsCard({
   const isSoftware = ps.category === "Software";
 
   const cardClass =
-    "group relative overflow-hidden border-border/80 bg-card transition-all duration-200 hover:border-gray-500 dark:hover:border-gray-500 hover:shadow-md dark:hover:shadow-gray-1000/20" +
+    "group relative overflow-hidden rounded-xl border border-border/70 bg-card/80 transition-all duration-200 hover:border-foreground/25 hover:shadow-lg dark:hover:border-foreground/30 dark:hover:shadow-primary/5" +
     (variant === "grid" ? " flex h-full flex-col" : "");
 
   const categoryPill = (
     <span
       className={
         isSoftware
-          ? "inline-flex items-center rounded-full border border-blue-600/30 bg-blue-600/10 px-2.5 py-0.5 font-mono text-[11px] font-medium text-blue-700 dark:text-blue-600"
-          : "inline-flex items-center rounded-full border border-amber-600/30 bg-amber-600/10 px-2.5 py-0.5 font-mono text-[11px] font-medium text-amber-700 dark:text-amber-500"
+          ? "inline-flex items-center rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 font-mono text-[11px] font-medium text-sky-700 dark:text-sky-400"
+          : "inline-flex items-center rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[11px] font-medium text-amber-700 dark:text-amber-400"
       }
     >
       {ps.category}
@@ -46,33 +46,27 @@ export function PsCard({
   );
 
   const themeTag = (
-    <Badge
-      variant="secondary"
-      className="gap-1 font-normal text-label-12 text-muted-foreground"
-    >
-      <TagIcon className="size-3 text-muted-foreground/70" />
-      <span className="truncate max-w-[180px]">{ps.theme}</span>
-    </Badge>
+    <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/40 px-2 py-0.5 text-[11px] font-normal text-muted-foreground transition-colors group-hover:border-border/80">
+      <TagIcon className="size-3 text-muted-foreground/70 shrink-0" />
+      <span className="truncate max-w-[150px] sm:max-w-[180px]">{ps.theme}</span>
+    </span>
   );
 
   const datasetTag =
     ps.dataset_link.trim() ? (
-      <Badge
-        variant="outline"
-        className="gap-1 border-green-600/30 bg-green-600/10 font-mono text-[10px] text-green-700 dark:text-green-500"
-      >
-        <DatabaseIcon className="size-3 text-green-700 dark:text-green-500" />
+      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10.5px] font-medium text-emerald-700 dark:text-emerald-400">
+        <DatabaseIcon className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
         Dataset
-      </Badge>
+      </span>
     ) : null;
 
   const actions = (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 shrink-0">
       <div onClick={(e) => e.preventDefault()}>
         <PsOpenInChat ps={ps} size="icon" />
       </div>
       <div onClick={(e) => e.preventDefault()}>
-        <ShortlistButton psNumber={ps.ps_number} />
+        <ShortlistButton psNumber={ps.ps_number} variant="outline" size="icon" />
       </div>
     </div>
   );
@@ -84,7 +78,7 @@ export function PsCard({
           <CardContent className="flex flex-1 items-start gap-4 p-5">
             <div className="flex min-w-0 flex-1 flex-col gap-2.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center rounded-md border border-border/80 bg-muted/60 px-2 py-0.5 font-mono text-[11px] font-semibold text-foreground tracking-tight">
+                <span className="inline-flex items-center rounded-md border border-border/60 bg-muted/70 px-2 py-0.5 font-mono text-[11px] font-semibold text-foreground tracking-tight">
                   {ps.ps_number}
                 </span>
                 {categoryPill}
@@ -104,20 +98,20 @@ export function PsCard({
               </p>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5 text-label-12 text-muted-foreground">
-                <span className="flex items-center gap-1.5 truncate">
+                <span className="flex items-center gap-1.5 truncate max-w-[280px]" title={ps.org}>
                   <Building2Icon className="size-3.5 shrink-0 text-muted-foreground/70" />
                   <span className="truncate">{ps.org}</span>
                 </span>
-                <span className="shrink-0 font-mono">
+                <span className="shrink-0 font-mono text-[11px]">
                   Deadline: {ps.deadline}
                 </span>
                 {ps.ideas && (
-                  <span className="shrink-0 font-mono">{ps.ideas} ideas</span>
+                  <span className="shrink-0 font-mono text-[11px]">{ps.ideas} ideas</span>
                 )}
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-col items-end gap-2">
+            <div className="flex shrink-0 flex-col items-end gap-2.5">
               <DeadlineCountdown ps={ps} />
               {actions}
             </div>
@@ -133,7 +127,7 @@ export function PsCard({
         <CardContent className="flex flex-1 flex-col justify-between gap-4 p-5">
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center rounded-md border border-border/80 bg-muted/60 px-2 py-0.5 font-mono text-[11px] font-semibold text-foreground tracking-tight">
+              <span className="inline-flex items-center rounded-md border border-border/60 bg-muted/70 px-2 py-0.5 font-mono text-[11px] font-semibold text-foreground tracking-tight shadow-2xs">
                 {ps.ps_number}
               </span>
               <div className="flex items-center gap-1.5">
@@ -142,8 +136,8 @@ export function PsCard({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="line-clamp-2 text-heading-16 text-foreground transition-colors group-hover:text-primary flex items-start justify-between gap-2">
+            <div className="space-y-2.5">
+              <h3 className="line-clamp-2 text-heading-16 text-foreground transition-colors group-hover:text-primary flex items-start justify-between gap-2 leading-snug">
                 <span>
                   <Highlight text={title} />
                 </span>
@@ -158,12 +152,15 @@ export function PsCard({
             </div>
           </div>
 
-          <div className="flex items-center justify-between border-t border-border/60 pt-3 text-label-12 text-muted-foreground">
-            <span className="flex items-center gap-1.5 truncate font-medium text-muted-foreground">
+          <div className="flex items-center justify-between gap-3 border-t border-border/40 pt-3 text-xs text-muted-foreground">
+            <span
+              className="flex items-center gap-1.5 min-w-0 flex-1 text-muted-foreground/90 group-hover:text-foreground/90 transition-colors"
+              title={ps.org}
+            >
               <Building2Icon className="size-3.5 shrink-0 text-muted-foreground/70" />
-              <span className="truncate">{ps.org}</span>
+              <span className="truncate text-[12px] font-medium">{ps.org}</span>
             </span>
-            <span className="shrink-0 font-mono">{ps.deadline}</span>
+            <span className="shrink-0 font-mono text-[11px] text-muted-foreground/80">{ps.deadline}</span>
           </div>
         </CardContent>
       </Link>

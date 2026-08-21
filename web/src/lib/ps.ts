@@ -117,7 +117,7 @@ export function psChatPrompt(ps: ProblemStatement): string {
   const lines = [
     `I'm preparing for Smart India Hackathon 2026. Here is a problem statement I'm evaluating:`,
     ``,
-    `## ${ps.ps_number} — ${ps.title}`,
+    `## ${ps.ps_number} - ${ps.title}`,
     ``,
     `- **Organization:** ${ps.org}`,
     `- **Department:** ${ps.department || "N/A"}`,

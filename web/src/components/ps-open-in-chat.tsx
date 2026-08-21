@@ -42,13 +42,14 @@ export function PsOpenInChat({
             variant="outline"
             size={size === "icon" ? "icon" : "sm"}
             className={cn(
+              size === "icon" && "size-7 rounded-lg border-border/60 bg-muted/30 hover:bg-muted/70 text-muted-foreground hover:text-foreground shrink-0 p-0 shadow-2xs",
               size === "sm" && "gap-1.5 text-label-12",
               className,
             )}
             aria-label="Open problem statement in a chat"
           >
             {size === "icon" ? (
-              <SparklesIcon className="size-4" />
+              <SparklesIcon className="size-3.5" />
             ) : (
               <>
                 <SparklesIcon className="size-3.5" />

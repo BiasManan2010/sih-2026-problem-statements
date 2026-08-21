@@ -44,6 +44,19 @@ import { useExplorer, PAGE_SIZE } from "@/hooks/use-explorer";
 import { stats, problemStatements } from "@/lib/ps";
 import type { FilterState, ViewMode } from "@/lib/filters";
 
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  SearchIcon,
+  RotateCcwIcon,
+  ArrowUpDownIcon,
+  Building2Icon,
+  LayersIcon,
+  DatabaseIcon,
+} from "lucide-react";
+
 function CategoryTabs({
   value,
   onChange,
@@ -61,124 +74,230 @@ function CategoryTabs({
       }}
       className="w-full sm:w-auto"
     >
-      <TabsList className="grid w-full grid-cols-3 rounded-lg border border-border/80 bg-muted/50 p-1 sm:w-auto">
-        <TabsTrigger value="all" className="rounded-md font-medium text-xs">
-          All ({stats.total})
+      <TabsList className="grid w-full grid-cols-3 rounded-xl border border-border/60 bg-muted/40 p-1 sm:w-auto">
+        <TabsTrigger value="all" className="rounded-lg font-medium text-xs px-3 transition-all">
+          All <span className="ml-1 font-mono text-[10px] text-muted-foreground">({stats.total})</span>
         </TabsTrigger>
-        <TabsTrigger value="Software" className="rounded-md font-medium text-xs">
-          Software ({stats.software})
+        <TabsTrigger value="Software" className="rounded-lg font-medium text-xs px-3 transition-all">
+          Software <span className="ml-1 font-mono text-[10px] text-muted-foreground">({stats.software})</span>
         </TabsTrigger>
-        <TabsTrigger value="Hardware" className="rounded-md font-medium text-xs">
-          Hardware ({stats.hardware})
+        <TabsTrigger value="Hardware" className="rounded-lg font-medium text-xs px-3 transition-all">
+          Hardware <span className="ml-1 font-mono text-[10px] text-muted-foreground">({stats.hardware})</span>
         </TabsTrigger>
       </TabsList>
     </Tabs>
   );
 }
 
+const SORT_LABELS: Record<string, string> = {
+  sno: "Statement ID (Ascending)",
+  title: "Title (A–Z)",
+  theme: "Theme Name",
+  org: "Organization",
+  deadline: "Submission Deadline",
+};
+
 function FilterControls({
   filters,
+  activeCount,
   setFilter,
   toggleTheme,
   onReset,
 }: {
   filters: FilterState;
+  activeCount: number;
   setFilter: (k: keyof FilterState, v: FilterState[keyof FilterState]) => void;
   toggleTheme: (t: string) => void;
   onReset: () => void;
 }) {
+  const [themeSearch, setThemeSearch] = useState("");
+
+  const filteredThemes = useMemo(() => {
+    if (!themeSearch.trim()) return stats.themes;
+    return stats.themes.filter((t) =>
+      t.name.toLowerCase().includes(themeSearch.toLowerCase()),
+    );
+  }, [themeSearch]);
+
   return (
-    <div className="space-y-6">
-      <div className="space-y-2.5">
-        <Label htmlFor="org-filter" className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          Organization
-        </Label>
-        <Select
-          value={filters.org}
-          onValueChange={(v) => setFilter("org", v ?? "")}
-        >
-          <SelectTrigger id="org-filter" className="w-full rounded-lg border-border/80 bg-background/80 text-xs">
-            <SelectValue placeholder="All organizations" />
-          </SelectTrigger>
-          <SelectContent className="max-h-72">
-            <SelectItem value="">All organizations ({stats.orgs.length})</SelectItem>
-            {stats.orgs.map((o) => (
-              <SelectItem key={o.name} value={o.name} className="text-xs">
-                {o.name} ({o.count})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2.5">
-        <Label className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          Themes ({stats.themes.length})
-        </Label>
-        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto scrollbar-none pr-1">
-          {stats.themes.map((t) => {
-            const active = filters.themes.includes(t.name);
-            return (
-              <Badge
-                key={t.name}
-                variant={active ? "default" : "outline"}
-                className={`cursor-pointer select-none rounded-md px-2 py-0.5 text-xs font-normal transition-all ${
-                  active
-                    ? "bg-foreground text-background"
-                    : "border-border/80 bg-background/50 hover:bg-muted text-muted-foreground hover:text-foreground"
-                }`}
-                onClick={() => toggleTheme(t.name)}
-              >
-                {t.name} <span className="ml-1 font-mono text-[10px] opacity-70">{t.count}</span>
+    <Card className="rounded-xl border border-border/70 bg-card/90 shadow-2xs backdrop-blur-sm">
+      <CardHeader className="p-4 pb-3 border-b border-border/50">
+        <CardTitle className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-foreground">
+          <span className="flex items-center gap-2">
+            <FilterIcon className="size-4 text-primary" />
+            <span>Filter Statements</span>
+          </span>
+          {activeCount > 0 ? (
+            <div className="flex items-center gap-1.5">
+              <Badge variant="default" className="font-mono text-[10px] h-4 px-1.5 rounded-md">
+                {activeCount} active
               </Badge>
-            );
-          })}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 px-1.5 text-[10px] text-muted-foreground hover:text-foreground"
+                onClick={onReset}
+              >
+                Reset
+              </Button>
+            </div>
+          ) : (
+            <Badge variant="outline" className="font-mono text-[10px] text-muted-foreground">
+              {stats.total} total
+            </Badge>
+          )}
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="p-4 space-y-4">
+        {/* Organization Filter */}
+        <div className="space-y-2">
+          <Label htmlFor="org-filter" className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+            <Building2Icon className="size-3.5 text-muted-foreground" />
+            <span>Organization</span>
+          </Label>
+          <Select
+            value={filters.org || "all"}
+            onValueChange={(v) => setFilter("org", v === "all" ? "" : (v ?? ""))}
+          >
+            <SelectTrigger id="org-filter" className="w-full h-9 rounded-lg border-border/70 bg-background text-xs">
+              <SelectValue>
+                {filters.org ? filters.org : `All organizations (${stats.orgs.length})`}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="max-h-64">
+              <SelectItem value="all" className="text-xs">
+                All organizations ({stats.orgs.length})
+              </SelectItem>
+              {stats.orgs.map((o) => (
+                <SelectItem key={o.name} value={o.name} className="text-xs">
+                  {o.name} ({o.count})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      </div>
 
-      <Separator className="bg-border/60" />
+        <Separator className="bg-border/50" />
 
-      <div className="flex items-center justify-between gap-4">
-        <Label htmlFor="dataset-switch" className="text-xs font-medium cursor-pointer">
-          Has attached dataset
-        </Label>
-        <Switch
-          id="dataset-switch"
-          checked={filters.hasDataset}
-          onCheckedChange={(v) => setFilter("hasDataset", v)}
-        />
-      </div>
+        {/* Themes Filter */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+              <LayersIcon className="size-3.5 text-muted-foreground" />
+              <span>Themes</span>
+            </Label>
+            {filters.themes.length > 0 && (
+              <Badge variant="secondary" className="font-mono text-[10px] px-1.5">
+                {filters.themes.length} selected
+              </Badge>
+            )}
+          </div>
 
-      <Separator className="bg-border/60" />
+          <div className="relative">
+            <SearchIcon className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search themes..."
+              value={themeSearch}
+              onChange={(e) => setThemeSearch(e.target.value)}
+              className="h-8 pl-8 text-xs rounded-md border-border/70 bg-background"
+            />
+          </div>
 
-      <div className="space-y-2.5">
-        <Label className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          Sort by
-        </Label>
-        <Select value={filters.sort} onValueChange={(v) => setFilter("sort", v ?? "sno")}>
-          <SelectTrigger className="w-full rounded-lg border-border/80 bg-background/80 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="sno">Statement ID (Ascending)</SelectItem>
-            <SelectItem value="title">Title (A–Z)</SelectItem>
-            <SelectItem value="theme">Theme Name</SelectItem>
-            <SelectItem value="org">Organization</SelectItem>
-            <SelectItem value="deadline">Submission Deadline</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+          <ScrollArea className="h-44 rounded-lg border border-border/50 bg-background/50 p-1.5">
+            <div className="space-y-1">
+              {filteredThemes.length === 0 ? (
+                <p className="p-2 text-center text-xs text-muted-foreground">No themes found</p>
+              ) : (
+                filteredThemes.map((t) => {
+                  const checked = filters.themes.includes(t.name);
+                  return (
+                    <div
+                      key={t.name}
+                      onClick={() => toggleTheme(t.name)}
+                      className={`flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs cursor-pointer transition-colors ${
+                        checked
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "hover:bg-muted/60 text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Checkbox
+                          id={`theme-${t.name}`}
+                          checked={checked}
+                          onCheckedChange={() => toggleTheme(t.name)}
+                          className="size-3.5"
+                        />
+                        <span className="truncate text-[11.5px]">{t.name}</span>
+                      </div>
+                      <Badge
+                        variant={checked ? "default" : "outline"}
+                        className="font-mono text-[10px] h-4 px-1.5 shrink-0"
+                      >
+                        {t.count}
+                      </Badge>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </ScrollArea>
+        </div>
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full justify-center gap-1.5 rounded-lg border-border/80 text-xs text-muted-foreground hover:text-foreground"
-        onClick={onReset}
-      >
-        <XIcon className="size-3.5" />
-        Reset all filters
-      </Button>
-    </div>
+        <Separator className="bg-border/50" />
+
+        {/* Has Dataset Switch */}
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-background/50 p-2.5">
+          <Label htmlFor="dataset-switch" className="flex items-center gap-1.5 text-xs font-medium cursor-pointer">
+            <DatabaseIcon className="size-3.5 text-muted-foreground" />
+            <span>Has attached dataset</span>
+          </Label>
+          <Switch
+            id="dataset-switch"
+            checked={filters.hasDataset}
+            onCheckedChange={(v) => setFilter("hasDataset", v)}
+          />
+        </div>
+
+        <Separator className="bg-border/50" />
+
+        {/* Sort By */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+            <ArrowUpDownIcon className="size-3.5 text-muted-foreground" />
+            <span>Sort by</span>
+          </Label>
+          <Select value={filters.sort || "sno"} onValueChange={(v) => setFilter("sort", v ?? "sno")}>
+            <SelectTrigger className="w-full h-9 rounded-lg border-border/70 bg-background text-xs">
+              <SelectValue>
+                {SORT_LABELS[filters.sort || "sno"] || "Statement ID (Ascending)"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="text-xs">
+              <SelectItem value="sno">Statement ID (Ascending)</SelectItem>
+              <SelectItem value="title">Title (A–Z)</SelectItem>
+              <SelectItem value="theme">Theme Name</SelectItem>
+              <SelectItem value="org">Organization</SelectItem>
+              <SelectItem value="deadline">Submission Deadline</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Reset Button */}
+        {activeCount > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-center gap-1.5 rounded-lg border-border/70 text-xs text-muted-foreground hover:text-foreground mt-1"
+            onClick={onReset}
+          >
+            <RotateCcwIcon className="size-3.5" />
+            Reset all filters
+          </Button>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -208,20 +327,10 @@ export function Explorer() {
     <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
       <div className="flex flex-col gap-6 py-6 lg:flex-row lg:gap-8">
         <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto scrollbar-thin pr-2">
-            <div className="flex items-center gap-2 pb-2 border-b border-border/60">
-              <FilterIcon className="size-4 text-muted-foreground" />
-              <span className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
-                Filter Statements
-              </span>
-              {activeCount > 0 && (
-                <Badge variant="default" className="ml-auto h-4 px-1.5 font-mono text-[10px]">
-                  {activeCount} active
-                </Badge>
-              )}
-            </div>
+          <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin pr-1">
             <FilterControls
               filters={{ ...filters, org: validOrg }}
+              activeCount={activeCount}
               setFilter={setFilter}
               toggleTheme={toggleTheme}
               onReset={reset}
@@ -410,6 +519,7 @@ export function Explorer() {
           <div className="mt-6">
             <FilterControls
               filters={{ ...filters, org: validOrg }}
+              activeCount={activeCount}
               setFilter={setFilter}
               toggleTheme={toggleTheme}
               onReset={() => {

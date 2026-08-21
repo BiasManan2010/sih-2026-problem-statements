@@ -44,7 +44,7 @@ export function NotesDialog({ psNumber, title }: { psNumber: string; title: stri
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Key requirements, ideas, links, contacts — stored only in your browser…"
+          placeholder="Key requirements, ideas, links, contacts - stored only in your browser…"
           className="min-h-40"
         />
         <DialogFooter>

@@ -1,7 +1,7 @@
 # SIH 2026 Problem Statements
 
 Structured, searchable archive of all **226 problem statements** from
-[Smart India Hackathon 2026](https://www.sih.gov.in/sih2026PS) — every statement
+[Smart India Hackathon 2026](https://www.sih.gov.in/sih2026PS) - every statement
 as clean markdown, JSON and CSV, plus a fast, SEO-friendly web app to browse,
 search and shortlist them.
 
@@ -24,7 +24,7 @@ Fast, fully static, SEO-optimized browsing experience:
 - **Filters** by theme, category (Software/Hardware), organization, dataset availability
 - **Detail pages** per PS with deadline countdown, similar statements,
   copy/share/open-in-chat and private notes
-- **Shortlist** (localStorage) with CSV/Markdown export — pick your team's candidates
+- **Shortlist** (localStorage) with CSV/Markdown export - pick your team's candidates
 - Dark mode, keyboard navigation, mobile-first, fully accessible
 
 ### Local development
@@ -55,7 +55,7 @@ sih.gov.in **every 24 hours** (04:00 IST) and automatically:
 1. Updates `ps_2026/*.md`, `data/sih2026_ps.json`, `data/sih2026_ps.csv` and
    `web/src/data/ps.json` with the latest deadlines, submitted-idea counts,
    dataset links and any new/changed problem statements
-2. Validates the result (record count sanity check + field validation) — if the
+2. Validates the result (record count sanity check + field validation) - if the
    scrape looks incomplete, nothing is committed
 3. Commits and pushes only when the data actually changed (the scraper is
    byte-deterministic for unchanged records, so there are no noisy commits)
@@ -74,7 +74,7 @@ Requires `beautifulsoup4` + `lxml`.
 
 ## License & attribution
 
-- **Dataset** (problem statement content): [CC BY 4.0](LICENSE) — content is
+- **Dataset** (problem statement content): [CC BY 4.0](LICENSE) - content is
   published by Smart India Hackathon / Innovation Cell, Government of India.
   Attribution: "Source: Smart India Hackathon, sih.gov.in".
 - **Code** (scraper, web app): [MIT](LICENSE-CODE).

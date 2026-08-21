@@ -59,9 +59,16 @@ MOJIBAKE_FIX = {
     "\u00c3\u00a9": "\u00e9",        # e-acute
 }
 
+# Em dashes replaced with hyphens throughout the dataset
+PUNCTUATION_FIX = {
+    "\u2014": "-",
+}
+
 
 def fix_text(text: str) -> str:
     for bad, good in MOJIBAKE_FIX.items():
+        text = text.replace(bad, good)
+    for bad, good in PUNCTUATION_FIX.items():
         text = text.replace(bad, good)
     return text
 
