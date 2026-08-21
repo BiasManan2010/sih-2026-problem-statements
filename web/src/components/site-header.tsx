@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Kbd } from "@/components/ui/kbd";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useShortlist } from "@/hooks/use-shortlist";
 import { useMounted } from "@/hooks/use-local-storage";
@@ -44,9 +45,9 @@ export function SiteHeader({ onOpenCommand }: { onOpenCommand: () => void }) {
               <SearchIcon className="size-3.5 text-muted-foreground" />
               Search problem statements…
             </span>
-            <kbd className="pointer-events-none flex h-5 select-none items-center rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground shadow-2xs">
+            <Kbd className="pointer-events-none hidden size-5 items-center justify-center shadow-2xs sm:flex">
               ⌘K
-            </kbd>
+            </Kbd>
           </Button>
 
           <Button

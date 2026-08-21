@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { PsCard } from "@/components/ps-card";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { useMounted } from "@/hooks/use-local-storage";
 import { useShortlist } from "@/hooks/use-shortlist";
 import { psMarkdown, problemStatements } from "@/lib/ps";
@@ -22,7 +23,12 @@ export function ShortlistView() {
   );
 
   if (!mounted) {
-    return <div className="py-16 text-center font-mono text-xs text-muted-foreground">Loading shortlist data…</div>;
+    return (
+      <div className="flex items-center justify-center gap-2 py-16 text-label-13 text-muted-foreground">
+        <Spinner className="size-4" />
+        Loading shortlist data…
+      </div>
+    );
   }
 
   if (items.length === 0) {

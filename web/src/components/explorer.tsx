@@ -1,12 +1,20 @@
 "use client";
 
-import { ListIcon, LayoutGridIcon, SlidersHorizontalIcon, XIcon, ChevronLeftIcon, ChevronRightIcon, FilterIcon } from "lucide-react";
+import { ListIcon, LayoutGridIcon, SlidersHorizontalIcon, XIcon, ChevronLeftIcon, ChevronRightIcon, FilterIcon, SearchXIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { PsCard } from "@/components/ps-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +25,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -33,7 +42,7 @@ import {
 } from "@/components/ui/pagination";
 import { useExplorer, PAGE_SIZE } from "@/hooks/use-explorer";
 import { stats, problemStatements } from "@/lib/ps";
-import type { FilterState } from "@/lib/filters";
+import type { FilterState, ViewMode } from "@/lib/filters";
 
 function CategoryTabs({
   value,
@@ -248,26 +257,23 @@ export function Explorer() {
                 )}
               </Button>
 
-              <div className="hidden items-center rounded-lg border border-border/80 bg-muted/40 p-0.5 sm:flex">
-                <Button
-                  variant={filters.view === "grid" ? "secondary" : "ghost"}
-                  size="icon-xs"
-                  aria-label="Grid view"
-                  className="rounded-md"
-                  onClick={() => setFilter("view", "grid")}
-                >
+              <ToggleGroup
+                variant="outline"
+                size="sm"
+                value={[filters.view]}
+                onValueChange={(v) => {
+                  if (v.length > 0) setFilter("view", v[0] as ViewMode);
+                }}
+                aria-label="View mode"
+                className="hidden rounded-lg border border-border/80 bg-muted/40 p-0.5 sm:flex"
+              >
+                <ToggleGroupItem value="grid" aria-label="Grid view" className="rounded-md">
                   <LayoutGridIcon className="size-3.5" />
-                </Button>
-                <Button
-                  variant={filters.view === "list" ? "secondary" : "ghost"}
-                  size="icon-xs"
-                  aria-label="List view"
-                  className="rounded-md"
-                  onClick={() => setFilter("view", "list")}
-                >
+                </ToggleGroupItem>
+                <ToggleGroupItem value="list" aria-label="List view" className="rounded-md">
                   <ListIcon className="size-3.5" />
-                </Button>
-              </div>
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
           </div>
 
@@ -290,18 +296,25 @@ export function Explorer() {
           )}
 
           {pageItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/80 py-20 text-center bg-card/40">
-              <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <XIcon className="size-5" />
-              </div>
-              <p className="text-base font-semibold text-foreground">No problem statements match criteria</p>
-              <p className="max-w-md text-xs text-muted-foreground">
-                Try adjusting your search terms or clearing specific filters.
-              </p>
-              <Button variant="outline" size="sm" className="mt-2 rounded-lg" onClick={reset}>
-                Clear all filters
-              </Button>
-            </div>
+            <Empty className="border border-dashed border-border/80 bg-card/40 py-20">
+              <EmptyMedia variant="icon">
+                <SearchXIcon className="size-4" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle className="text-heading-16">
+                  No problem statements match your criteria
+                </EmptyTitle>
+                <EmptyDescription>
+                  Try adjusting your search terms or clearing specific filters.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button variant="outline" size="sm" className="rounded-lg" onClick={reset}>
+                  <XIcon className="size-3.5" />
+                  Clear all filters
+                </Button>
+              </EmptyContent>
+            </Empty>
           ) : (
             <div
               className={

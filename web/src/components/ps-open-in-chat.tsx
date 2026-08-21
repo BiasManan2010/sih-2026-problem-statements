@@ -12,11 +12,13 @@ import {
   OpenInScira,
   OpenInSeparator,
   OpenInT3,
-  OpenInTrigger,
   OpenInv0,
 } from "@/components/ai-elements/open-in-chat";
 import { Button } from "@/components/ui/button";
-import { DropdownMenuGroup } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenuGroup,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { psChatPrompt, type ProblemStatement } from "@/lib/ps";
 
@@ -33,28 +35,30 @@ export function PsOpenInChat({
 
   return (
     <OpenIn query={query}>
-      <OpenInTrigger>
-        <Button
-          type="button"
-          variant="outline"
-          size={size === "icon" ? "icon" : "sm"}
-          className={cn(
-            size === "sm" && "gap-1.5 text-label-12",
-            className,
-          )}
-          aria-label="Open problem statement in a chat"
-        >
-          {size === "icon" ? (
-            <SparklesIcon className="size-4" />
-          ) : (
-            <>
-              <SparklesIcon className="size-3.5" />
-              Open in chat
-              <ChevronDownIcon className="size-3.5" />
-            </>
-          )}
-        </Button>
-      </OpenInTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size={size === "icon" ? "icon" : "sm"}
+            className={cn(
+              size === "sm" && "gap-1.5 text-label-12",
+              className,
+            )}
+            aria-label="Open problem statement in a chat"
+          >
+            {size === "icon" ? (
+              <SparklesIcon className="size-4" />
+            ) : (
+              <>
+                <SparklesIcon className="size-3.5" />
+                Open in chat
+                <ChevronDownIcon className="size-3.5" />
+              </>
+            )}
+          </Button>
+        }
+      />
       <OpenInContent>
         <DropdownMenuGroup>
           <OpenInLabel>Open with problem statement</OpenInLabel>

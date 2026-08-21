@@ -21,6 +21,14 @@ import { PsOpenInChat } from "@/components/ps-open-in-chat";
 import { ShareMenu } from "@/components/share-menu";
 import { ShortlistButton } from "@/components/shortlist-button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -123,13 +131,17 @@ export default async function PsPage({ params }: Props) {
       />
 
       {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 py-2 text-xs font-medium text-muted-foreground">
-        <Link href="/" className="hover:text-foreground transition-colors">
-          All Statements
-        </Link>
-        <span>/</span>
-        <span className="text-foreground truncate">{ps.theme}</span>
-      </div>
+      <Breadcrumb className="py-2 text-label-12">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">All Statements</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage className="truncate">{ps.theme}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       {/* Title & Header Section */}
       <div className="flex flex-wrap items-start justify-between gap-4 py-6 border-b border-border/60">

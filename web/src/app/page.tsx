@@ -7,6 +7,7 @@ import { FreshnessBanner } from "@/components/freshness-banner";
 import { JsonLd } from "@/components/json-ld";
 import { SearchBar } from "@/components/search-bar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { StatsSection } from "@/components/stats-section";
 import { stats } from "@/lib/ps";
 
@@ -92,7 +93,9 @@ export default function HomePage() {
           {/* SearchBar */}
           <Suspense
             fallback={
-              <div className="h-12 w-full max-w-2xl rounded-full bg-muted/50 animate-pulse" />
+              <div className="flex h-12 w-full max-w-2xl items-center justify-center rounded-xl border border-border/80 bg-muted/40">
+                <Spinner className="size-4 text-muted-foreground" />
+              </div>
             }
           >
             <SearchBar />
