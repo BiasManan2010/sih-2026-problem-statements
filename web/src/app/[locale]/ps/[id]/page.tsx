@@ -28,6 +28,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { themeSlugs, orgSlugs } from "@/lib/routes";
 import {
   PS_BY_NUMBER,
   problemStatements,
@@ -173,10 +174,20 @@ export default async function PsPage({ params }: Props) {
             >
               {ps.category}
             </span>
-            <Badge variant="secondary" className="gap-1 font-normal text-xs">
-              <Flag className="size-3 text-muted-foreground" />
-              {ps.theme}
-            </Badge>
+            <Link
+              href={getPathname({
+                href: `/themes/${themeSlugs[ps.theme]}`,
+                locale,
+              })}
+            >
+              <Badge
+                variant="secondary"
+                className="gap-1 font-normal text-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <Flag className="size-3 text-muted-foreground" />
+                {ps.theme}
+              </Badge>
+            </Link>
           </div>
         </div>
 
@@ -204,9 +215,21 @@ export default async function PsPage({ params }: Props) {
                   <p className="font-mono text-label-12 text-muted-foreground uppercase tracking-wider">
                     {t(`detail.${m.key}`)}
                   </p>
-                  <p className="text-label-14 font-semibold text-foreground leading-snug">
-                    {m.value || t("detail.noData")}
-                  </p>
+                  {m.key === "labelOrg" ? (
+                    <Link
+                      href={getPathname({
+                        href: `/orgs/${orgSlugs[ps.org]}`,
+                        locale,
+                      })}
+                      className="text-label-14 font-semibold text-foreground leading-snug transition-colors hover:text-blue-700 dark:hover:text-blue-600"
+                    >
+                      {m.value}
+                    </Link>
+                  ) : (
+                    <p className="text-label-14 font-semibold text-foreground leading-snug">
+                      {m.value || t("detail.noData")}
+                    </p>
+                  )}
                 </div>
               ))}
               <Separator className="bg-border/60" />

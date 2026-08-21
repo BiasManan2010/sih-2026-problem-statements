@@ -191,5 +191,18 @@
   "shortlistBtn": {
     "add": "Add to shortlist",
     "remove": "Remove from shortlist"
+  },
+  "landing": {
+    "breadcrumbAll": "All Statements",
+    "breadcrumbThemes": "Themes",
+    "breadcrumbOrgs": "Organizations",
+    "statementsCount": "{count} problem statements",
+    "themeDesc": "{count} problem statements in the {theme} theme for Smart India Hackathon 2026 - {software} software and {hardware} hardware.",
+    "orgDesc": "{count} problem statements submitted by {org} for Smart India Hackathon 2026 - {software} software and {hardware} hardware.",
+    "relatedThemes": "Explore other themes",
+    "relatedOrgs": "Other organizations",
+    "viewAll": "View all statements",
+    "software": "software",
+    "hardware": "hardware"
   }
 }

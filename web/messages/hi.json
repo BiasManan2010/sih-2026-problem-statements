@@ -191,5 +191,18 @@
   "shortlistBtn": {
     "add": "शॉर्टलिस्ट में जोड़ें",
     "remove": "शॉर्टलिस्ट से हटाएँ"
+  },
+  "landing": {
+    "breadcrumbAll": "सभी विवरण",
+    "breadcrumbThemes": "थीम",
+    "breadcrumbOrgs": "संगठन",
+    "statementsCount": "{count} समस्या विवरण",
+    "themeDesc": "स्मार्ट इंडिया हैकाथॉन 2026 के लिए {theme} थीम के {count} समस्या विवरण - {software} सॉफ्टवेयर और {hardware} हार्डवेयर।",
+    "orgDesc": "स्मार्ट इंडिया हैकाथॉन 2026 के लिए {org} द्वारा प्रस्तुत {count} समस्या विवरण - {software} सॉफ्टवेयर और {hardware} हार्डवेयर।",
+    "relatedThemes": "अन्य थीम देखें",
+    "relatedOrgs": "अन्य संगठन",
+    "viewAll": "सभी विवरण देखें",
+    "software": "सॉफ्टवेयर",
+    "hardware": "हार्डवेयर"
   }
 }

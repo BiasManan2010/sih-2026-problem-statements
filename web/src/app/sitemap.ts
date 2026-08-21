@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { routing } from "@/i18n/routing";
 import { problemStatements } from "@/lib/ps";
+import { orgSlugs, themeSlugs } from "@/lib/routes";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app";
@@ -29,6 +30,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: path === "" ? 1 : 0.3,
         alternates: altLinks(path),
       });
+    }
+  }
+
+  for (const [kind, slugs] of [
+    ["themes", themeSlugs],
+    ["orgs", orgSlugs],
+  ] as const) {
+    for (const slug of Object.values(slugs)) {
+      const path = `/${kind}/${slug}`;
+      for (const loc of routing.locales) {
+        entries.push({
+          url: `${SITE_URL}/${loc}${path}`,
+          lastModified: new Date(),
+          changeFrequency: "weekly",
+          priority: 0.7,
+          alternates: altLinks(path),
+        });
+      }
     }
   }
 
