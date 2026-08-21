@@ -1,6 +1,6 @@
 "use client";
 
-import { ListIcon, LayoutGridIcon, SlidersHorizontalIcon, XIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ListIcon, LayoutGridIcon, SlidersHorizontalIcon, XIcon, ChevronLeftIcon, ChevronRightIcon, FilterIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -50,11 +50,18 @@ function CategoryTabs({
         if (v === "all") onChange([]);
         else onChange([v as "Software" | "Hardware"]);
       }}
+      className="w-full sm:w-auto"
     >
-      <TabsList>
-        <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
-        <TabsTrigger value="Software">Software ({stats.software})</TabsTrigger>
-        <TabsTrigger value="Hardware">Hardware ({stats.hardware})</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-3 rounded-lg border border-border/80 bg-muted/50 p-1 sm:w-auto">
+        <TabsTrigger value="all" className="rounded-md font-medium text-xs">
+          All ({stats.total})
+        </TabsTrigger>
+        <TabsTrigger value="Software" className="rounded-md font-medium text-xs">
+          Software ({stats.software})
+        </TabsTrigger>
+        <TabsTrigger value="Hardware" className="rounded-md font-medium text-xs">
+          Hardware ({stats.hardware})
+        </TabsTrigger>
       </TabsList>
     </Tabs>
   );
@@ -72,22 +79,22 @@ function FilterControls({
   onReset: () => void;
 }) {
   return (
-    <div className="space-y-5">
-      <div className="space-y-3">
-        <Label htmlFor="org-filter" className="text-xs font-medium text-muted-foreground">
+    <div className="space-y-6">
+      <div className="space-y-2.5">
+        <Label htmlFor="org-filter" className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
           Organization
         </Label>
         <Select
           value={filters.org}
           onValueChange={(v) => setFilter("org", v ?? "")}
         >
-          <SelectTrigger id="org-filter" className="w-full">
+          <SelectTrigger id="org-filter" className="w-full rounded-lg border-border/80 bg-background/80 text-xs">
             <SelectValue placeholder="All organizations" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All organizations</SelectItem>
+          <SelectContent className="max-h-72">
+            <SelectItem value="">All organizations ({stats.orgs.length})</SelectItem>
             {stats.orgs.map((o) => (
-              <SelectItem key={o.name} value={o.name}>
+              <SelectItem key={o.name} value={o.name} className="text-xs">
                 {o.name} ({o.count})
               </SelectItem>
             ))}
@@ -95,30 +102,36 @@ function FilterControls({
         </Select>
       </div>
 
-      <div className="space-y-3">
-        <Label className="text-xs font-medium text-muted-foreground">Themes</Label>
-        <div className="flex flex-wrap gap-1.5">
+      <div className="space-y-2.5">
+        <Label className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          Themes ({stats.themes.length})
+        </Label>
+        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1">
           {stats.themes.map((t) => {
             const active = filters.themes.includes(t.name);
             return (
               <Badge
                 key={t.name}
                 variant={active ? "default" : "outline"}
-                className="cursor-pointer select-none"
+                className={`cursor-pointer select-none rounded-md px-2 py-0.5 text-xs font-normal transition-all ${
+                  active
+                    ? "bg-foreground text-background"
+                    : "border-border/80 bg-background/50 hover:bg-muted text-muted-foreground hover:text-foreground"
+                }`}
                 onClick={() => toggleTheme(t.name)}
               >
-                {t.name} {t.count}
+                {t.name} <span className="ml-1 font-mono text-[10px] opacity-70">{t.count}</span>
               </Badge>
             );
           })}
         </div>
       </div>
 
-      <Separator />
+      <Separator className="bg-border/60" />
 
       <div className="flex items-center justify-between gap-4">
-        <Label htmlFor="dataset-switch" className="text-sm">
-          Only statements with datasets
+        <Label htmlFor="dataset-switch" className="text-xs font-medium cursor-pointer">
+          Has attached dataset
         </Label>
         <Switch
           id="dataset-switch"
@@ -127,26 +140,33 @@ function FilterControls({
         />
       </div>
 
-      <Separator />
+      <Separator className="bg-border/60" />
 
-      <div className="space-y-2">
-        <Label className="text-xs font-medium text-muted-foreground">Sort by</Label>
+      <div className="space-y-2.5">
+        <Label className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          Sort by
+        </Label>
         <Select value={filters.sort} onValueChange={(v) => setFilter("sort", v ?? "sno")}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full rounded-lg border-border/80 bg-background/80 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="sno">Statement number</SelectItem>
+            <SelectItem value="sno">Statement ID (Ascending)</SelectItem>
             <SelectItem value="title">Title (A–Z)</SelectItem>
-            <SelectItem value="theme">Theme</SelectItem>
+            <SelectItem value="theme">Theme Name</SelectItem>
             <SelectItem value="org">Organization</SelectItem>
-            <SelectItem value="deadline">Deadline</SelectItem>
+            <SelectItem value="deadline">Submission Deadline</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <Button variant="outline" size="sm" className="w-full" onClick={onReset}>
-        <XIcon className="size-4" />
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full justify-center gap-1.5 rounded-lg border-border/80 text-xs text-muted-foreground hover:text-foreground"
+        onClick={onReset}
+      >
+        <XIcon className="size-3.5" />
         Reset all filters
       </Button>
     </div>
@@ -177,9 +197,20 @@ export function Explorer() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
-      <div className="flex flex-col gap-4 py-6 lg:flex-row lg:gap-8">
-        <aside className="hidden w-72 shrink-0 lg:block">
+      <div className="flex flex-col gap-6 py-6 lg:flex-row lg:gap-8">
+        <aside className="hidden w-64 shrink-0 lg:block">
           <div className="sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto pr-2">
+            <div className="flex items-center gap-2 pb-2 border-b border-border/60">
+              <FilterIcon className="size-4 text-muted-foreground" />
+              <span className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+                Filter Statements
+              </span>
+              {activeCount > 0 && (
+                <Badge variant="default" className="ml-auto h-4 px-1.5 font-mono text-[10px]">
+                  {activeCount} active
+                </Badge>
+              )}
+            </div>
             <FilterControls
               filters={{ ...filters, org: validOrg }}
               setFilter={setFilter}
@@ -190,74 +221,84 @@ export function Explorer() {
         </aside>
 
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4">
             <CategoryTabs
               value={filters.categories}
               onChange={(v) => setFilter("categories", v)}
             />
 
-            <div className="ml-auto flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">
-                {total} of {stats.total} statements
+            <div className="flex items-center gap-3">
+              <p className="font-mono text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">{total}</span> of {stats.total} statements
               </p>
+
               <Button
                 variant="outline"
-                size="icon"
-                className="lg:hidden"
+                size="sm"
+                className="relative gap-1.5 lg:hidden rounded-lg border-border/80 text-xs"
                 aria-label="Filters"
                 onClick={() => setMobileOpen(true)}
               >
-                <SlidersHorizontalIcon className="size-4" />
+                <SlidersHorizontalIcon className="size-3.5" />
+                Filters
                 {activeCount > 0 && (
-                  <Badge className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 text-[10px]">
+                  <Badge className="ml-0.5 h-4 min-w-4 rounded-full px-1 font-mono text-[10px]">
                     {activeCount}
                   </Badge>
                 )}
               </Button>
-              <div className="hidden items-center gap-1 sm:flex">
+
+              <div className="hidden items-center rounded-lg border border-border/80 bg-muted/40 p-0.5 sm:flex">
                 <Button
                   variant={filters.view === "grid" ? "secondary" : "ghost"}
-                  size="icon"
+                  size="icon-xs"
                   aria-label="Grid view"
+                  className="rounded-md"
                   onClick={() => setFilter("view", "grid")}
                 >
-                  <LayoutGridIcon className="size-4" />
+                  <LayoutGridIcon className="size-3.5" />
                 </Button>
                 <Button
                   variant={filters.view === "list" ? "secondary" : "ghost"}
-                  size="icon"
+                  size="icon-xs"
                   aria-label="List view"
+                  className="rounded-md"
                   onClick={() => setFilter("view", "list")}
                 >
-                  <ListIcon className="size-4" />
+                  <ListIcon className="size-3.5" />
                 </Button>
               </div>
             </div>
           </div>
 
           {filters.themes.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-muted-foreground">Theme:</span>
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Active Themes:
+              </span>
               {filters.themes.map((t) => (
                 <Badge
                   key={t}
                   variant="secondary"
-                  className="cursor-pointer"
+                  className="cursor-pointer gap-1 rounded-md px-2 py-0.5 text-xs transition-colors hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => toggleTheme(t)}
                 >
-                  {t} <XIcon className="ml-1 size-3" />
+                  {t} <XIcon className="size-3" />
                 </Badge>
               ))}
             </div>
           )}
 
           {pageItems.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-16 text-center">
-              <p className="text-lg font-medium">No problem statements found</p>
-              <p className="text-sm text-muted-foreground">
-                Try a different search term or clear some filters.
+            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/80 py-20 text-center bg-card/40">
+              <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <XIcon className="size-5" />
+              </div>
+              <p className="text-base font-semibold text-foreground">No problem statements match criteria</p>
+              <p className="max-w-md text-xs text-muted-foreground">
+                Try adjusting your search terms or clearing specific filters.
               </p>
-              <Button variant="outline" size="sm" className="mt-2" onClick={reset}>
+              <Button variant="outline" size="sm" className="mt-2 rounded-lg" onClick={reset}>
                 Clear all filters
               </Button>
             </div>
@@ -281,13 +322,14 @@ export function Explorer() {
           )}
 
           {pageCount > 1 && (
-            <Pagination className="py-4">
+            <Pagination className="py-6">
               <PaginationContent>
                 {filters.page > 1 && (
                   <PaginationItem>
                     <PaginationLink
                       href={urlFor({ page: filters.page - 1 })}
                       aria-label="Previous page"
+                      className="rounded-lg border border-border/80"
                     >
                       <ChevronLeftIcon className="size-4" />
                     </PaginationLink>
@@ -310,13 +352,14 @@ export function Explorer() {
                   .map((p, i) =>
                     p === -1 ? (
                       <PaginationItem key={`gap-${i}`}>
-                        <span className="px-2 text-sm text-muted-foreground">…</span>
+                        <span className="px-2 text-xs font-mono text-muted-foreground">…</span>
                       </PaginationItem>
                     ) : (
                       <PaginationItem key={p}>
                         <PaginationLink
                           href={urlFor({ page: p })}
                           isActive={p === filters.page}
+                          className="rounded-lg font-mono text-xs"
                         >
                           {p}
                         </PaginationLink>
@@ -328,6 +371,7 @@ export function Explorer() {
                     <PaginationLink
                       href={urlFor({ page: filters.page + 1 })}
                       aria-label="Next page"
+                      className="rounded-lg border border-border/80"
                     >
                       <ChevronRightIcon className="size-4" />
                     </PaginationLink>
@@ -336,18 +380,18 @@ export function Explorer() {
               </PaginationContent>
             </Pagination>
           )}
-          <p className="pb-4 text-center text-xs text-muted-foreground">
-            Showing {Math.min(PAGE_SIZE, Math.max(0, total - (filters.page - 1) * PAGE_SIZE))} of {total} statements
+          <p className="pb-4 text-center font-mono text-[11px] text-muted-foreground">
+            Showing page {filters.page} of {pageCount} ({Math.min(PAGE_SIZE, Math.max(0, total - (filters.page - 1) * PAGE_SIZE))} items on this page)
           </p>
         </div>
       </div>
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="right" className="w-80">
+        <SheetContent side="right" className="w-80 border-l border-border bg-background">
           <SheetHeader>
-            <SheetTitle>Filters</SheetTitle>
-            <SheetDescription>
-              Refine the list of problem statements.
+            <SheetTitle className="font-semibold text-base">Filter Statements</SheetTitle>
+            <SheetDescription className="text-xs">
+              Refine Smart India Hackathon problem statements.
             </SheetDescription>
           </SheetHeader>
           <div className="mt-6">
@@ -366,3 +410,4 @@ export function Explorer() {
     </div>
   );
 }
+

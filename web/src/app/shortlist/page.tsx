@@ -13,10 +13,10 @@ export default function ShortlistPage() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
       <div className="space-y-2 py-4">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+        <h1 className="text-heading-32 sm:text-heading-40">
           My shortlist
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-copy-14 text-muted-foreground">
           Saved statements are stored only in your browser. Use this to pick
           your team&apos;s final candidates before the deadline.
         </p>

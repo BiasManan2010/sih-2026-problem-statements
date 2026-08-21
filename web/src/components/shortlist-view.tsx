@@ -1,6 +1,6 @@
 "use client";
 
-import { BookmarkIcon, DownloadIcon } from "lucide-react";
+import { BookmarkIcon, DownloadIcon, FileTextIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { toast } from "sonner";
@@ -22,20 +22,21 @@ export function ShortlistView() {
   );
 
   if (!mounted) {
-    return <div className="py-16 text-center text-sm text-muted-foreground">Loading…</div>;
+    return <div className="py-16 text-center font-mono text-xs text-muted-foreground">Loading shortlist data…</div>;
   }
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed py-20 text-center">
-        <BookmarkIcon className="size-8 text-muted-foreground" />
-        <p className="text-lg font-medium">Nothing shortlisted yet</p>
-        <p className="max-w-sm text-sm text-muted-foreground">
-          Browse the problem statements and tap the bookmark on any card to add
-          it here.
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/80 py-20 text-center bg-card/40">
+        <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground shadow-2xs">
+          <BookmarkIcon className="size-6 text-muted-foreground" />
+        </div>
+        <p className="text-base font-semibold text-foreground">Your shortlist is empty</p>
+        <p className="max-w-sm text-xs text-muted-foreground leading-relaxed">
+          Browse the problem statements and tap the shortlist bookmark on any card to save it here for team evaluation.
         </p>
-        <Button render={<Link href="/" />} className="mt-2">
-          Browse statements
+        <Button render={<Link href="/" />} nativeButton={false} size="sm" className="mt-2 rounded-lg gap-2">
+          Browse Problem Statements
         </Button>
       </div>
     );
@@ -79,19 +80,38 @@ export function ShortlistView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {items.length} {items.length === 1 ? "statement" : "statements"}
-        </p>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={exportCsv}>
-            <DownloadIcon className="size-4" />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4">
+        <div className="flex items-center gap-2">
+          <p className="font-mono text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">{items.length}</span> saved {items.length === 1 ? "statement" : "statements"}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCsv}
+            className="gap-1.5 rounded-lg border-border/80 text-xs font-medium"
+          >
+            <DownloadIcon className="size-3.5" />
             Export CSV
           </Button>
-          <Button variant="outline" size="sm" onClick={copyMarkdown}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={copyMarkdown}
+            className="gap-1.5 rounded-lg border-border/80 text-xs font-medium"
+          >
+            <FileTextIcon className="size-3.5" />
             Copy Markdown
           </Button>
-          <Button variant="ghost" size="sm" onClick={clear}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clear}
+            className="gap-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-destructive"
+          >
+            <Trash2Icon className="size-3.5" />
             Clear all
           </Button>
         </div>
@@ -104,3 +124,4 @@ export function ShortlistView() {
     </div>
   );
 }
+

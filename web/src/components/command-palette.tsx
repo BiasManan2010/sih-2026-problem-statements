@@ -1,10 +1,9 @@
 "use client";
 
-import { BookmarkIcon, CornerDownLeftIcon, FolderIcon, HistoryIcon } from "lucide-react";
+import {BookmarkIcon, CornerDownLeftIcon, FolderIcon, HistoryIcon} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import {
   CommandDialog,
   CommandEmpty,
@@ -54,15 +53,17 @@ export function CommandPalette({
       }}
     >
       <CommandInput
-        placeholder="Search 226 problem statements, themes, organizations…"
+        placeholder="Type a command or search 226 problem statements…"
         value={query}
         onValueChange={setQuery}
       />
-      <CommandList>
-        <CommandEmpty>No problem statement found.</CommandEmpty>
+      <CommandList className="max-h-96 p-2">
+        <CommandEmpty className="py-6 text-center text-xs font-mono text-muted-foreground">
+          No matching problem statements found.
+        </CommandEmpty>
 
         {query.trim().length >= 2 && (
-          <CommandGroup heading={`Results for “${query}”`}>
+          <CommandGroup heading={`Matching Statements (${results.length})`}>
             {results.map((ps) => (
               <CommandItem
                 key={ps.ps_number}
@@ -71,65 +72,75 @@ export function CommandPalette({
                   addRecent(query);
                   go(`/ps/${ps.ps_number}`);
                 }}
+                className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-xs"
               >
-                <Badge variant="outline" className="shrink-0 font-mono text-[10px]">
+                <span className="shrink-0 rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-foreground">
                   {ps.ps_number}
-                </Badge>
-                <span className="truncate">{ps.title}</span>
-                <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+                </span>
+                <span className="truncate text-foreground font-medium">{ps.title}</span>
+                <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
                   {ps.theme}
                 </span>
               </CommandItem>
             ))}
-            <CommandItem value="__search_all__" onSelect={search}>
-              <CornerDownLeftIcon className="size-3.5" />
-              Search all 226 statements for “{query}”
+            <CommandItem
+              value="__search_all__"
+              onSelect={search}
+              className="mt-1 flex items-center gap-2 rounded-lg font-medium text-xs text-foreground"
+            >
+              <CornerDownLeftIcon className="size-3.5 text-muted-foreground" />
+              Search all {stats.total} statements for “{query}”
             </CommandItem>
           </CommandGroup>
         )}
 
-        <CommandSeparator />
+        <CommandSeparator className="my-1 bg-border/60" />
 
-        <CommandGroup heading="Jump to">
-          <CommandItem value="home" onSelect={() => go("/")}>
-            <FolderIcon className="size-3.5" />
+        <CommandGroup heading="Navigation">
+          <CommandItem value="home" onSelect={() => go("/")} className="rounded-lg text-xs">
+            <FolderIcon className="size-3.5 text-muted-foreground" />
             All problem statements
           </CommandItem>
-          <CommandItem value="shortlist" onSelect={() => go("/shortlist")}>
-            <BookmarkIcon className="size-3.5" />
+          <CommandItem value="shortlist" onSelect={() => go("/shortlist")} className="rounded-lg text-xs">
+            <BookmarkIcon className="size-3.5 text-muted-foreground" />
             My shortlist
           </CommandItem>
-          {recent.length > 0 && (
-            <>
-              <CommandSeparator />
-              <CommandGroup heading="Recent searches">
-                {recent.map((r) => (
-                  <CommandItem
-                    key={r}
-                    value={`recent_${r}`}
-                    onSelect={() => {
-                      addRecent(r);
-                      go(`/?q=${encodeURIComponent(r)}`);
-                    }}
-                  >
-                    <HistoryIcon className="size-3.5" />
-                    {r}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </>
-          )}
         </CommandGroup>
 
-        <CommandGroup heading="Browse themes">
+        {recent.length > 0 && (
+          <>
+            <CommandSeparator className="my-1 bg-border/60" />
+            <CommandGroup heading="Recent Searches">
+              {recent.map((r) => (
+                <CommandItem
+                  key={r}
+                  value={`recent_${r}`}
+                  onSelect={() => {
+                    addRecent(r);
+                    go(`/?q=${encodeURIComponent(r)}`);
+                  }}
+                  className="rounded-lg text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <HistoryIcon className="size-3.5 text-muted-foreground/70" />
+                  <span className="truncate">{r}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        <CommandSeparator className="my-1 bg-border/60" />
+
+        <CommandGroup heading="Browse Top Themes">
           {stats.themes.slice(0, 8).map((theme) => (
             <CommandItem
               key={theme.name}
               value={`theme_${theme.name}`}
               onSelect={() => go(`/?theme=${encodeURIComponent(theme.name)}`)}
+              className="rounded-lg text-xs"
             >
               <span className="truncate">{theme.name}</span>
-              <span className="ml-auto text-xs text-muted-foreground">
+              <span className="ml-auto font-mono text-[10px] font-medium text-muted-foreground">
                 {theme.count}
               </span>
             </CommandItem>
@@ -139,3 +150,4 @@ export function CommandPalette({
     </CommandDialog>
   );
 }
+

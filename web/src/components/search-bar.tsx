@@ -1,10 +1,9 @@
 "use client";
 
-import { SearchIcon, XIcon, CornerDownLeftIcon } from "lucide-react";
+import {SearchIcon, XIcon, CornerDownLeftIcon, HistoryIcon} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRecentSearches } from "@/hooks/use-recent-searches";
@@ -59,9 +58,9 @@ export function SearchBar() {
           e.preventDefault();
           submit(query);
         }}
-        className="relative"
+        className="relative group"
       >
-        <SearchIcon className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+        <SearchIcon className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-foreground" />
         <Input
           value={query}
           onChange={(e) => {
@@ -73,36 +72,36 @@ export function SearchBar() {
             setOpen(true);
           }}
           onBlur={() => setFocused(false)}
-          placeholder="Search by title, theme, organization or PS number…"
-          className="h-12 rounded-full pl-11 pr-16 text-base shadow-sm"
+          placeholder="Search by title, theme, organization or PS number (e.g. SIH26001)…"
+          className="h-12 rounded-xl border-border/80 bg-background/90 pl-11 pr-20 text-copy-16 shadow-xs backdrop-blur-md transition-all focus-visible:border-gray-500 dark:focus-visible:border-gray-500 focus-visible:ring-1 focus-visible:ring-blue-600/40"
           aria-label="Search problem statements"
         />
         {query && (
           <Button
             type="button"
             variant="ghost"
-            size="icon"
+            size="icon-xs"
             aria-label="Clear search"
-            className="absolute top-1/2 right-10 size-6 -translate-y-1/2"
+            className="absolute top-1/2 right-12 size-6 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             onClick={() => {
               setQuery("");
               setOpen(false);
             }}
           >
-            <XIcon className="size-4" />
+            <XIcon className="size-3.5" />
           </Button>
         )}
-        <kbd className="absolute top-1/2 right-4 hidden -translate-y-1/2 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] sm:flex">
+        <kbd className="pointer-events-none absolute top-1/2 right-3.5 hidden -translate-y-1/2 items-center justify-center rounded border border-border/80 bg-muted/80 px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground shadow-2xs sm:flex">
           ⏎
         </kbd>
       </form>
 
       {showSuggestions && (
-        <div className="absolute top-full z-30 mt-2 w-full overflow-hidden rounded-xl border bg-popover p-1.5 text-popover-foreground shadow-lg">
+        <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-border/80 bg-popover/95 p-2 text-popover-foreground shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-100">
           {results.length > 0 && (
-            <div className="space-y-0.5">
-              <p className="px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                Problem statements
+            <div className="space-y-1">
+              <p className="px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Problem Statements ({results.length})
               </p>
               {results.map((ps) => (
                 <button
@@ -114,13 +113,15 @@ export function SearchBar() {
                     setOpen(false);
                     router.push(`/ps/${ps.ps_number}`);
                   }}
-                  className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-accent"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-copy-14 transition-colors hover:bg-accent/80 group"
                 >
-                  <Badge variant="outline" className="shrink-0 font-mono text-[10px]">
+                  <span className="shrink-0 rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-foreground">
                     {ps.ps_number}
-                  </Badge>
-                  <span className="truncate">{ps.title}</span>
-                  <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+                  </span>
+                  <span className="truncate text-foreground font-medium group-hover:text-primary">
+                    {ps.title}
+                  </span>
+                  <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
                     {ps.theme}
                   </span>
                 </button>
@@ -128,9 +129,9 @@ export function SearchBar() {
             </div>
           )}
           {recent.length > 0 && (
-            <div className="space-y-0.5 border-t pt-1.5">
-              <p className="px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                Recent searches
+            <div className="mt-1 space-y-1 border-t border-border/60 pt-2">
+              <p className="px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Recent Searches
               </p>
               {recent.slice(0, 4).map((r) => (
                 <button
@@ -140,25 +141,28 @@ export function SearchBar() {
                     e.preventDefault();
                     submit(r);
                   }}
-                  className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-accent/80 hover:text-foreground"
                 >
-                  <CornerDownLeftIcon className="size-3.5" />
-                  {r}
+                  <HistoryIcon className="size-3 text-muted-foreground/70" />
+                  <span className="truncate">{r}</span>
                 </button>
               ))}
             </div>
           )}
-          <div className="border-t pt-1">
+          <div className="mt-1 border-t border-border/60 pt-1.5">
             <button
               type="button"
               onMouseDown={(e) => {
                 e.preventDefault();
                 submit(query);
               }}
-              className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm font-medium hover:bg-accent"
+              className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-accent"
             >
-              <SearchIcon className="size-3.5" />
-              Search all {stats.total} statements for “{query}”
+              <span className="flex items-center gap-2">
+                <SearchIcon className="size-3.5 text-muted-foreground" />
+                Search all {stats.total} statements for “{query}”
+              </span>
+              <CornerDownLeftIcon className="size-3.5 text-muted-foreground" />
             </button>
           </div>
         </div>
@@ -166,3 +170,4 @@ export function SearchBar() {
     </div>
   );
 }
+

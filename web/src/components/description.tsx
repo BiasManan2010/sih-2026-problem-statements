@@ -57,12 +57,12 @@ export function Description({ text }: { text: string }) {
 
   let blockIndex = 0;
   return (
-    <div className="space-y-4 text-sm leading-7 text-foreground/90">
+    <div className="space-y-4 text-copy-16 text-foreground/90">
       {blocks.map((block) => {
         const key = `b${blockIndex++}`;
         if (block.type === "ul") {
           return (
-            <ul key={key} className="ml-5 space-y-2 list-disc marker:text-primary/60">
+            <ul key={key} className="ml-5 space-y-2 list-disc marker:text-gray-400">
               {block.items.map((item, j) => (
                 <li key={j}>{renderInline(item, `${key}-${j}`)}</li>
               ))}
