@@ -1,0 +1,88 @@
+import rawData from "@/data/ps.json";
+
+export interface ProblemStatement {
+  sno: number;
+  ps_number: string;
+  title: string;
+  org: string;
+  department: string;
+  category: "Software" | "Hardware";
+  theme: string;
+  deadline: string;
+  deadline_date: string | null;
+  ideas: string;
+  dataset_link: string;
+  contact: string;
+  youtube: string;
+  description: string;
+  scraped_at: string;
+}
+
+export const problemStatements = rawData as ProblemStatement[];
+
+export const PS_BY_NUMBER = new Map(
+  problemStatements.map((ps) => [ps.ps_number, ps]),
+);
+
+export interface Stats {
+  total: number;
+  software: number;
+  hardware: number;
+  themes: { name: string; count: number }[];
+  orgs: { name: string; count: number }[];
+  hasDataset: number;
+}
+
+export const stats: Stats = {
+  total: problemStatements.length,
+  software: problemStatements.filter((ps) => ps.category === "Software").length,
+  hardware: problemStatements.filter((ps) => ps.category === "Hardware").length,
+  themes: countBy(problemStatements, "theme").sort((a, b) => b.count - a.count),
+  orgs: countBy(problemStatements, "org").sort((a, b) => b.count - a.count),
+  hasDataset: problemStatements.filter((ps) => ps.dataset_link.trim().length > 0)
+    .length,
+};
+
+function countBy<T>(items: T[], key: keyof T): { name: string; count: number }[] {
+  const map = new Map<string, number>();
+  for (const item of items) {
+    const value = String(item[key]);
+    map.set(value, (map.get(value) ?? 0) + 1);
+  }
+  return [...map.entries()].map(([name, count]) => ({ name, count }));
+}
+
+export function deadlineDate(ps: ProblemStatement): Date | null {
+  if (!ps.deadline_date) return null;
+  const d = new Date(ps.deadline_date + "T00:00:00");
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+export function daysUntil(date: Date, from: Date = new Date()): number {
+  const ms = date.getTime() - new Date(from).setHours(0, 0, 0, 0);
+  return Math.ceil(ms / 86_400_000);
+}
+
+export function descriptionExcerpt(ps: ProblemStatement, length = 220): string {
+  const text = ps.description.replace(/\s+/g, " ").trim();
+  return text.length > length ? text.slice(0, length).trimEnd() + "…" : text;
+}
+
+export function psMarkdown(ps: ProblemStatement): string {
+  return [
+    `# ${ps.ps_number} - ${ps.title}`,
+    ``,
+    `- **PS Number:** ${ps.ps_number}`,
+    `- **Organization:** ${ps.org}`,
+    `- **Category:** ${ps.category}`,
+    `- **Theme:** ${ps.theme}`,
+    `- **Deadline:** ${ps.deadline}`,
+    ``,
+    `## Description`,
+    ``,
+    ps.description,
+    ``,
+    `---`,
+    `Source: https://sih.gov.in/sih2026PS · CC-BY-4.0 · ${ps.scraped_at}`,
+  ].join("\n");
+}

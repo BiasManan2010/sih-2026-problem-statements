@@ -1,0 +1,277 @@
+#!/usr/bin/env python3
+"""Scrape SIH 2026 problem statements from https://sih.gov.in/sih2026PS
+
+Generates:
+  ps_2026/SIHXXXXX.md          - one markdown file per problem statement
+  ps_2026/README.md            - index table linking every problem statement
+  data/sih2026_ps.json         - full structured export (consumed by the web app)
+  data/sih2026_ps.csv          - spreadsheet-friendly export
+  web/src/data/ps.json         - copy of the JSON consumed by the Next.js app
+
+Usage:
+  python3 scripts/scrape_sih.py            # fetch live + regenerate everything
+  python3 scripts/scrape_sih.py --validate # validate existing artifacts offline
+  python3 scripts/scrape_sih.py --cache HTML_FILE  # parse a local cached HTML file
+
+Notes:
+  - The source HTML contains CP1252-double-encoded UTF-8 (mojibake). A fix table
+    repairs the most common sequences (dashes, smart quotes, degree signs, etc.).
+  - Content is published by Smart India Hackathon (sih.gov.in) and is licensed
+    CC-BY-4.0 in this repository. See LICENSE.
+"""
+
+import argparse
+import html
+import json
+import re
+import sys
+import urllib.request
+from datetime import date, datetime
+from pathlib import Path
+
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    sys.exit("beautifulsoup4 is required: pip install beautifulsoup4 lxml")
+
+ROOT = Path(__file__).resolve().parent.parent
+PS_DIR = ROOT / "ps_2026"
+DATA_DIR = ROOT / "data"
+WEB_DATA = ROOT / "web" / "src" / "data"
+URL = "https://sih.gov.in/sih2026PS"
+SCRAPE_DATE = date.today().isoformat()
+
+# UTF-8 decoded as CP1252 then re-encoded as UTF-8 (mojibake) -> correct chars
+MOJIBAKE_FIX = {
+    "\u00e2\u20ac\u201c": "\u2013",  # en dash
+    "\u00e2\u20ac\u201d": "\u2014",  # em dash
+    "\u00e2\u20ac\u2122": "\u2019",  # right single quote
+    "\u00e2\u20ac\u02dc": "\u2018",  # left single quote
+    "\u00e2\u20ac\u0153": "\u201c",  # left double quote
+    "\u00e2\u20ac\u0152": "\u201d",  # right double quote
+    "\u00e2\u20ac\u00a6": "\u2026",  # ellipsis
+    "\u00c2\u00b0": "\u00b0",        # degree sign
+    "\u00c2\u00b5": "\u00b5",        # micro sign
+    "\u00c2\u00b7": "\u00b7",        # middle dot
+    "\u00c3\u00b1": "\u00f1",        # n-tilde
+    "\u00c3\u00a0": "\u00e0",        # a-grave
+    "\u00c3\u00a9": "\u00e9",        # e-acute
+}
+
+
+def fix_text(text: str) -> str:
+    for bad, good in MOJIBAKE_FIX.items():
+        text = text.replace(bad, good)
+    return text
+
+
+def fetch_html(url: str) -> str:
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (SIH-2026-PS-scraper/1.0)"})
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        return resp.read().decode("utf-8", errors="replace")
+
+
+def parse(html_text: str):
+    soup = BeautifulSoup(html_text, "lxml")
+    table = soup.find("table", id="dataTablePS")
+    if not table:
+        sys.exit("Could not find #dataTablePS in the page. The site layout may have changed.")
+    rows = table.find("tbody").find_all("tr")
+    records = []
+    for tr in rows:
+        tds = tr.find_all("td", recursive=False)
+        if len(tds) < 8:
+            continue
+        title_cell = tds[2]
+        link = title_cell.find("a")
+        title = fix_text(link.get_text(strip=True)) if link else fix_text(title_cell.get_text(strip=True))
+        modal = title_cell.find("div", id=re.compile(r"^ViewProblemStatement"))
+
+        desc = department = dataset_link = contact = youtube = ""
+        if modal:
+            modal_soup = BeautifulSoup(str(modal), "lxml")
+            for trow in modal_soup.find_all("tr"):
+                th = trow.find("th")
+                td = trow.find("td")
+                if not th or not td:
+                    continue
+                key = th.get_text(strip=True)
+                if key == "Description":
+                    div = td.find("div", class_="style-2")
+                    desc = fix_text(div.get_text("\n", strip=True) if div else td.get_text("\n", strip=True))
+                elif key == "Department":
+                    department = fix_text(td.get_text(strip=True))
+                elif key == "Dataset Link":
+                    dataset_link = fix_text(td.get_text(strip=True)).strip()
+                elif key == "Contact info":
+                    contact = fix_text(td.get_text(strip=True))
+                elif key == "Youtube Link":
+                    youtube = fix_text(td.get_text(strip=True))
+
+        deadline = fix_text(tds[7].get_text(strip=True))
+        deadline_date = None
+        try:
+            deadline_date = datetime.strptime(deadline, "%d %B %Y").date().isoformat()
+        except ValueError:
+            pass
+
+        records.append({
+            "sno": int(tds[0].get_text(strip=True)),
+            "ps_number": fix_text(tds[4].get_text(strip=True)),
+            "title": title,
+            "org": fix_text(tds[1].get_text(strip=True)),
+            "department": department,
+            "category": fix_text(tds[3].get_text(strip=True)),
+            "theme": fix_text(tds[6].get_text(strip=True)),
+            "deadline": deadline,
+            "deadline_date": deadline_date,
+            "ideas": fix_text(tds[5].get_text(strip=True)),
+            "dataset_link": dataset_link,
+            "contact": contact,
+            "youtube": youtube,
+            "description": desc,
+            "scraped_at": SCRAPE_DATE,
+        })
+    return records
+
+
+def fmt_link(text: str) -> str:
+    text = text.strip()
+    if not text:
+        return "N/A"
+    urls = re.findall(r"https?://[^\s]+", text)
+    if urls:
+        return " ".join(f"[{u}]({u})" for u in urls)
+    return html.unescape(text).replace("\n", ", ")
+
+
+def write_markdown(records: list):
+    PS_DIR.mkdir(parents=True, exist_ok=True)
+    index = [
+        "# SIH 2026 - Problem Statements", "",
+        f"Total: {len(records)} problem statements, scraped from https://sih.gov.in/sih2026PS on {SCRAPE_DATE}.",
+        "",
+        f"Licensed under CC-BY-4.0. Source: Smart India Hackathon (sih.gov.in).",
+        "",
+        "| S.No. | PS Number | Category | Theme | Organization | Title |",
+        "|---|---|---|---|---|---|",
+    ]
+    for r in records:
+        safe = re.sub(r"[^\w\-]+", "_", r["ps_number"])
+        footer = (f"\n---\n_Source: [sih.gov.in/sih2026PS](https://sih.gov.in/sih2026PS) | "
+                  f"Scraped: {SCRAPE_DATE} | License: CC-BY-4.0_")
+        body = [
+            f"# {r['ps_number']} - {r['title']}", "",
+            "## Metadata", "",
+            f"- **S.No.:** {r['sno']}",
+            f"- **PS Number:** {r['ps_number']}",
+            f"- **Title:** {r['title']}",
+            f"- **Organization:** {r['org']}",
+            f"- **Department:** {r['department']}",
+            f"- **Category:** {r['category']}",
+            f"- **Theme:** {r['theme']}",
+            f"- **Deadline for Idea Submission:** {r['deadline']}",
+            f"- **Submitted Ideas:** {r['ideas']}",
+            f"- **Dataset Link:** {fmt_link(r['dataset_link'])}",
+            f"- **Contact Info:** {r['contact'] if r['contact'].strip() else 'N/A'}",
+            f"- **Youtube Link:** {r['youtube'] if r['youtube'].strip() else 'N/A'}",
+            "", "## Description", "", r["description"], "",
+        ]
+        (PS_DIR / f"{safe}.md").write_text("\n".join(body) + footer + "\n", encoding="utf-8")
+        index.append(f"| {r['sno']} | {r['ps_number']} | {r['category']} | {r['theme']} | {r['org']} | "
+                     f"[{r['title']}]({safe}.md) |")
+    (PS_DIR / "README.md").write_text("\n".join(index) + "\n", encoding="utf-8")
+
+
+def write_json(records: list):
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    WEB_DATA.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(records, ensure_ascii=False, indent=2)
+    (DATA_DIR / "sih2026_ps.json").write_text(payload + "\n", encoding="utf-8")
+    (WEB_DATA / "ps.json").write_text(payload + "\n", encoding="utf-8")
+
+
+def write_csv(records: list):
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    import csv as csvlib
+    fields = ["sno", "ps_number", "title", "org", "department", "category", "theme",
+              "deadline", "deadline_date", "ideas", "dataset_link", "contact", "youtube",
+              "description", "scraped_at"]
+    with (DATA_DIR / "sih2026_ps.csv").open("w", newline="", encoding="utf-8") as f:
+        w = csvlib.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        for r in records:
+            w.writerow({k: r[k] for k in fields})
+
+
+def validate(records: list):
+    issues = []
+    seen = set()
+    files = sorted(PS_DIR.glob("SIH*.md"))
+    if len(files) != len(records):
+        issues.append(f"expected {len(records)} md files, found {len(files)}")
+    for r in records:
+        if r["ps_number"] in seen:
+            issues.append(f"duplicate PS number {r['ps_number']}")
+        seen.add(r["ps_number"])
+        if not (PS_DIR / f"{r['ps_number']}.md").exists():
+            issues.append(f"missing file {r['ps_number']}.md")
+        for key in ("sno", "ps_number", "title", "org", "category", "theme", "deadline", "description"):
+            if not r.get(key):
+                issues.append(f"{r['ps_number']}: empty {key}")
+        if len(r["description"]) < 50:
+            issues.append(f"{r['ps_number']}: description too short")
+    return issues
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--validate", action="store_true", help="validate existing artifacts and exit")
+    ap.add_argument("--cache", type=str, help="parse a local cached HTML file instead of fetching")
+    args = ap.parse_args()
+
+    if args.validate:
+        raw = (DATA_DIR / "sih2026_ps.json").read_text(encoding="utf-8")
+        records = json.loads(raw)
+        issues = validate(records)
+        if issues:
+            print(f"VALIDATION FAILED: {len(issues)} issue(s)")
+            for i in issues:
+                print(" -", i)
+            sys.exit(1)
+        n_files = len(list(PS_DIR.glob("SIH*.md")))
+        print(f"OK: {len(records)} problem statements validated ({n_files} md files)")
+        return
+
+    if args.cache:
+        html_text = Path(args.cache).read_text(encoding="utf-8", errors="replace")
+    else:
+        print(f"Fetching {URL} ...")
+        html_text = fetch_html(URL)
+
+    records = parse(html_text)
+    write_markdown(records)
+    write_json(records)
+    write_csv(records)
+
+    issues = validate(records)
+    if issues:
+        for i in issues:
+            print(" -", i)
+        sys.exit(1)
+
+    cats = {}
+    themes = {}
+    for r in records:
+        cats[r["category"]] = cats.get(r["category"], 0) + 1
+        themes[r["theme"]] = themes.get(r["theme"], 0) + 1
+    print(f"OK: {len(records)} problem statements")
+    print(f"Categories: {cats}")
+    print(f"Themes: {len(themes)}")
+    print(f"MD -> {PS_DIR}")
+    print(f"JSON -> {DATA_DIR / 'sih2026_ps.json'} (+ web/src/data/ps.json)")
+    print(f"CSV -> {DATA_DIR / 'sih2026_ps.csv'}")
+
+
+if __name__ == "__main__":
+    main()
