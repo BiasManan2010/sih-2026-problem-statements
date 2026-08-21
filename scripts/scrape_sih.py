@@ -121,6 +121,122 @@ def preserve_scrape_dates(records: list, existing: list) -> list:
     return records
 
 
+# Human-readable labels for changed fields in the changelog
+FIELD_LABELS = {
+    "deadline": "Deadline",
+    "deadline_date": "Deadline (parsed)",
+    "ideas": "Submitted ideas count",
+    "dataset_link": "Dataset link",
+    "title": "Title",
+    "description": "Description",
+    "theme": "Theme",
+    "org": "Organization",
+    "department": "Department",
+    "category": "Category",
+    "contact": "Contact info",
+    "youtube": "Youtube link",
+}
+
+
+def compute_diff(records: list, existing: list) -> dict:
+    """Field-level diff between the new scrape and the previous one."""
+    prev_by_id = {r["ps_number"]: r for r in existing}
+    new_by_id = {r["ps_number"]: r for r in records}
+    prev_ids = set(prev_by_id)
+    new_ids = set(new_by_id)
+
+    added = sorted(new_ids - prev_ids)
+    removed = sorted(prev_ids - new_ids)
+    updated = []
+    for psn in sorted(new_ids & prev_ids):
+        prev = prev_by_id[psn]
+        curr = new_by_id[psn]
+        changed = [
+            (k, prev.get(k), curr.get(k))
+            for k in CONTENT_KEYS
+            if prev.get(k) != curr.get(k)
+        ]
+        if changed:
+            updated.append({"ps_number": psn, "fields": changed})
+    return {"added": added, "removed": removed, "updated": updated}
+
+
+def _fmt_value(v) -> str:
+    if v is None:
+        return "N/A"
+    s = str(v)
+    if len(s) > 200:
+        return s[:197] + "..."
+    return s
+
+
+def write_changelog(records: list, existing: list, date_str: str):
+    diff = compute_diff(records, existing)
+    if not diff["added"] and not diff["removed"] and not diff["updated"]:
+        return False
+
+    lines = [f"# SIH 2026 Data Update - {date_str}", ""]
+    lines.append(f"- **Total statements:** {len(records)}")
+    lines.append(f"- **Added:** {len(diff['added'])}")
+    lines.append(f"- **Removed:** {len(diff['removed'])}")
+    lines.append(f"- **Updated:** {len(diff['updated'])}")
+    lines.append("")
+
+    if diff["added"]:
+        lines.append("## Added")
+        lines.append("")
+        for psn in diff["added"]:
+            r = next(x for x in records if x["ps_number"] == psn)
+            lines.append(f"- **{psn}** - {r['title']} ({r['org']}, {r['theme']})")
+        lines.append("")
+
+    if diff["removed"]:
+        lines.append("## Removed")
+        lines.append("")
+        for psn in diff["removed"]:
+            lines.append(f"- {psn}")
+        lines.append("")
+
+    if diff["updated"]:
+        lines.append("## Updated")
+        lines.append("")
+        for u in diff["updated"]:
+            lines.append(f"### {u['ps_number']}")
+            for key, old, new in u["fields"]:
+                label = FIELD_LABELS.get(key, key)
+                lines.append(f"- **{label}:** `{_fmt_value(old)}` -> `{_fmt_value(new)}`")
+            lines.append("")
+        lines.append("")
+
+    changelog_dir = DATA_DIR / "changelog"
+    changelog_dir.mkdir(parents=True, exist_ok=True)
+    (changelog_dir / f"{date_str}.md").write_text("\n".join(lines), encoding="utf-8")
+
+    root_changelog = ROOT / "CHANGELOG.md"
+    entry = lines + [f"Full diff: [data/changelog/{date_str}.md](data/changelog/{date_str}.md)", ""]
+    header = [
+        "# CHANGELOG",
+        "",
+        "Automated record of daily changes to the SIH 2026 problem statement dataset.",
+        "",
+    ]
+    if root_changelog.exists():
+        header_str = "\n".join(header)
+        existing_text = root_changelog.read_text(encoding="utf-8")
+        if existing_text.startswith(header_str):
+            body = existing_text[len(header_str):].lstrip("\n")
+        else:
+            body = existing_text.replace("# CHANGELOG\n", "", 1).lstrip("\n")
+    else:
+        body = ""
+    entries = ["\n".join(entry)]
+    if body.strip():
+        entries.append(body.rstrip("\n"))
+    kept = "\n\n---\n\n".join(entries[:30])
+    root_changelog.write_text("\n".join(header) + kept + "\n", encoding="utf-8")
+    return True
+
+
 def parse(html_text: str):
     soup = BeautifulSoup(html_text, "lxml")
     table = soup.find("table", id="dataTablePS")
@@ -306,10 +422,14 @@ def main():
             f"Sanity check failed: only {len(records)} records parsed "
             f"(expected >= {MIN_RECORDS}). Refusing to write partial data."
         )
-    records = preserve_scrape_dates(records, load_existing())
+    existing = load_existing()
+    records = preserve_scrape_dates(records, existing)
     write_markdown(records)
     write_json(records)
     write_csv(records)
+    changed = write_changelog(records, existing, SCRAPE_DATE)
+    if changed:
+        print(f"Changelog written: data/changelog/{SCRAPE_DATE}.md")
 
     issues = validate(records)
     if issues:
