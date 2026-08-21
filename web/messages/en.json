@@ -138,7 +138,13 @@
     "desc": "Community-maintained archive of all {count} <link>problem statements</link> published by Smart India Hackathon. Content: CC-BY-4.0 · Code: MIT.",
     "pillTotal": "total",
     "pillSoftware": "software",
-    "pillHardware": "hardware"
+    "pillHardware": "hardware",
+    "browse": "Browse",
+    "allStatements": "All statements",
+    "themes": "Themes",
+    "orgs": "Organizations",
+    "disclaimer": "Unofficial community archive - not affiliated with Smart India Hackathon or the Government of India.",
+    "madeBy": "Made by <author>vedantchalke36</author> with love"
   },
   "notFound": {
     "title": "Problem statement not found",
@@ -203,6 +209,8 @@
     "relatedOrgs": "Other organizations",
     "viewAll": "View all statements",
     "software": "software",
-    "hardware": "hardware"
+    "hardware": "hardware",
+    "themesIndexDesc": "Browse all {count} SIH 2026 themes, from agriculture to smart automation, with every problem statement organized by theme.",
+    "orgsIndexDesc": "Browse all {count} ministries and organizations submitting SIH 2026 problem statements, with every statement organized by organization."
   }
 }

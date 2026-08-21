@@ -108,7 +108,7 @@ export default async function HomePage({
 
           {/* Heading */}
           <div className="space-y-4 max-w-3xl">
-            <h1 className="text-heading-40 sm:text-heading-56 text-balance bg-gradient-to-b from-foreground via-foreground/90 to-foreground/60 bg-clip-text text-transparent">
+            <h1 className="text-heading-32 sm:text-heading-56 text-balance bg-gradient-to-b from-foreground via-foreground/90 to-foreground/60 bg-clip-text text-transparent">
               {t("hero.title")}
             </h1>
             <p className="mx-auto max-w-2xl text-copy-18 text-muted-foreground">
