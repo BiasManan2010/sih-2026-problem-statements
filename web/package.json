@@ -37,5 +37,6 @@
   },
   "allowScripts": {
     "unrs-resolver@1.12.2": true
-  }
+  },
+  "packageManager": "npm@11.17.0"
 }
