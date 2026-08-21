@@ -20,24 +20,28 @@ export function DeadlineCountdown({ ps }: { ps: ProblemStatement }) {
 
   const days = daysUntil(date);
   let label = t("dueToday");
-  let colorStyle = "border-green-600/30 bg-green-600/10 text-green-700 dark:text-green-500";
+  let colorStyle =
+    "border-green-800 bg-green-700/10 text-green-900 dark:border-green-500 dark:bg-green-600/15 dark:text-green-500";
   if (days > 0) {
     label = days === 1 ? t("dueTomorrow") : t("dueIn", { days });
     if (days <= 15) {
-      colorStyle = "border-red-600/30 bg-red-600/10 text-red-700 dark:text-red-500";
+      colorStyle =
+        "border-red-800 bg-red-700/10 text-red-900 dark:border-red-500 dark:bg-red-600/15 dark:text-red-500";
     } else if (days <= 45) {
-      colorStyle = "border-amber-600/30 bg-amber-600/10 text-amber-700 dark:text-amber-500";
+      colorStyle =
+        "border-amber-900 bg-amber-700/10 text-amber-900 dark:border-amber-500 dark:bg-amber-600/15 dark:text-amber-500";
     }
   } else if (days < 0) {
     label = t("passed");
-    colorStyle = "border-border/60 bg-muted/60 text-muted-foreground";
+    colorStyle =
+      "border-gray-700 bg-gray-200/60 text-gray-900 dark:border-gray-600 dark:bg-gray-300/30 dark:text-gray-900";
   }
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10.5px] font-medium tracking-tight whitespace-nowrap shrink-0 ${colorStyle}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[11px] font-semibold tracking-tight whitespace-nowrap shrink-0 ${colorStyle}`}
     >
-      <Clock className="size-3 shrink-0" />
+      <Clock className="size-3 shrink-0" aria-hidden="true" />
       <span>{label}</span>
     </span>
   );

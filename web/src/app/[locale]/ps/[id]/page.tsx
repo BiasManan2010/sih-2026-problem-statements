@@ -40,7 +40,7 @@ interface Props {
   params: Promise<{ locale: string; id: string }>;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih2026.vuce.in";
 
 export const dynamicParams = false;
 

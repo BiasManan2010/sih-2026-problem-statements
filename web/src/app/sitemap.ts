@@ -5,7 +5,7 @@ import { problemStatements } from "@/lib/ps";
 import { orgSlugs, themeSlugs } from "@/lib/routes";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih2026.vuce.in";
 
 function altLinks(path: string): MetadataRoute.Sitemap[number]["alternates"] {
   return {

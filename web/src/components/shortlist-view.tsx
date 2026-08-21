@@ -61,7 +61,7 @@ export function ShortlistView() {
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ??
-    "https://sih-2026-problem-statements.vercel.app";
+    "https://sih2026.vuce.in";
 
   const shareText = [
     `${t("title")} (${items.length})`,

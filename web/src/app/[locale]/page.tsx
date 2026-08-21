@@ -14,7 +14,7 @@ import { routing } from "@/i18n/routing";
 import { stats } from "@/lib/ps";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih2026.vuce.in";
 
 export async function generateMetadata({
   params,
@@ -55,7 +55,7 @@ export default async function HomePage({
           name: "SIH 2026 Problem Statements",
           description:
             "All 226 Smart India Hackathon 2026 problem statements with titles, descriptions, organizations, themes and deadlines.",
-          url: "https://sih-2026-problem-statements.vercel.app",
+          url: "https://sih2026.vuce.in",
           creator: {
             "@type": "Organization",
             name: "Smart India Hackathon",

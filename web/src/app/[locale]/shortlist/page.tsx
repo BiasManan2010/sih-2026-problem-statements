@@ -6,7 +6,7 @@ import { getPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih2026.vuce.in";
 
 export async function generateMetadata({
   params,

@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app",
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih2026.vuce.in",
   ),
   title: {
     default: "SIH 2026 Problem Statements - Browse All 226",

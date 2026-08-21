@@ -1,11 +1,12 @@
 "use client";
 
-import { Star } from "@/components/icons/geist";
+import { Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useShortlist } from "@/hooks/use-shortlist";
+import { cn } from "@/lib/utils";
 
 export function ShortlistButton({
   psNumber,
@@ -25,13 +26,18 @@ export function ShortlistButton({
       <TooltipTrigger
         render={
           <Button
+            type="button"
             variant={active ? "secondary" : variant}
             size={size}
-            className={
+            className={cn(
+              "shrink-0 p-0 shadow-2xs transition-all duration-150",
               size === "icon"
-                ? `size-7 rounded-lg border border-border/60 ${active ? "bg-primary/15 border-primary/40 text-primary" : "bg-muted/30 hover:bg-muted/70 text-muted-foreground hover:text-foreground"} shrink-0 p-0 shadow-2xs transition-colors`
-                : undefined
-            }
+                ? "size-7 rounded-lg border border-border/60"
+                : "gap-1.5 text-label-12",
+              active
+                ? "border-primary/40 bg-primary/15 text-primary hover:bg-primary/25"
+                : "border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+            )}
             aria-label={active ? t("remove") : t("add")}
             aria-pressed={active}
             onClick={(e: React.MouseEvent) => {
@@ -40,7 +46,13 @@ export function ShortlistButton({
               toggle(psNumber);
             }}
           >
-            <Star className={active ? "size-3.5 fill-current" : "size-3.5"} />
+            <Star
+              className={cn(
+                "size-3.5 transition-transform duration-150",
+                active && "scale-110 fill-current",
+              )}
+            />
+            {size === "sm" && (active ? t("remove") : t("add"))}
           </Button>
         }
       />
