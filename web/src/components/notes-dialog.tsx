@@ -1,6 +1,7 @@
 "use client";
 
-import { NotebookPenIcon } from "lucide-react";
+import { PencilEdit } from "@/components/icons/geist";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ import { useNotes } from "@/hooks/use-notes";
 
 export function NotesDialog({ psNumber, title }: { psNumber: string; title: string }) {
   const { getNote, setNote, clearNote } = useNotes();
+  const t = useTranslations("notes");
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -34,17 +36,17 @@ export function NotesDialog({ psNumber, title }: { psNumber: string; title: stri
   return (
     <Dialog open={open} onOpenChange={openDialog}>
       <DialogTrigger
-        render={<Button variant="outline" size="sm">Notes</Button>}
+        render={<Button variant="outline" size="sm">{t("save")}</Button>}
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Private notes · {psNumber}</DialogTitle>
+          <DialogTitle>{t("title", { id: psNumber })}</DialogTitle>
           <DialogDescription>{title}</DialogDescription>
         </DialogHeader>
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Key requirements, ideas, links, contacts - stored only in your browser…"
+          placeholder={t("placeholder")}
           className="min-h-40"
         />
         <DialogFooter>
@@ -54,7 +56,7 @@ export function NotesDialog({ psNumber, title }: { psNumber: string; title: stri
             onClick={() => {
               clearNote(psNumber);
               setText("");
-              toast.success("Notes cleared");
+              toast.success(t("cleared"));
             }}
           >
             Clear
@@ -62,12 +64,12 @@ export function NotesDialog({ psNumber, title }: { psNumber: string; title: stri
           <Button
             onClick={() => {
               setNote(psNumber, text);
-              toast.success("Notes saved");
+              toast.success(t("saved"));
               setOpen(false);
             }}
           >
-            <NotebookPenIcon className="size-4" />
-            Save note
+            <PencilEdit className="size-4" />
+            {t("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

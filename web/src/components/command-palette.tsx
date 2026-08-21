@@ -1,7 +1,7 @@
 "use client";
 
-import {BookmarkIcon, CornerDownLeftIcon, FolderIcon, HistoryIcon} from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ArrowRight, Box, Clock, Star } from "@/components/icons/geist";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import {
@@ -13,6 +13,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import { useRouter } from "@/i18n/navigation";
 import { useRecentSearches } from "@/hooks/use-recent-searches";
 import { fuzzySearch } from "@/lib/search";
 import { stats } from "@/lib/ps";
@@ -25,6 +26,7 @@ export function CommandPalette({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const t = useTranslations("palette");
   const { recent, addRecent } = useRecentSearches();
   const [query, setQuery] = useState("");
 
@@ -53,7 +55,7 @@ export function CommandPalette({
       }}
     >
       <CommandInput
-        placeholder="Type a command or search 226 problem statements…"
+        placeholder={t("placeholder")}
         value={query}
         onValueChange={setQuery}
       />
@@ -88,8 +90,8 @@ export function CommandPalette({
               onSelect={search}
               className="mt-1 flex items-center gap-2 rounded-lg font-medium text-xs text-foreground"
             >
-              <CornerDownLeftIcon className="size-3.5 text-muted-foreground" />
-              Search all {stats.total} statements for “{query}”
+              <ArrowRight className="size-3.5 text-muted-foreground" />
+              {t("searchAll", { total: stats.total, query })}
             </CommandItem>
           </CommandGroup>
         )}
@@ -98,19 +100,19 @@ export function CommandPalette({
 
         <CommandGroup heading="Navigation">
           <CommandItem value="home" onSelect={() => go("/")} className="rounded-lg text-xs">
-            <FolderIcon className="size-3.5 text-muted-foreground" />
-            All problem statements
+            <Box className="size-3.5 text-muted-foreground" />
+            {t("home")}
           </CommandItem>
           <CommandItem value="shortlist" onSelect={() => go("/shortlist")} className="rounded-lg text-xs">
-            <BookmarkIcon className="size-3.5 text-muted-foreground" />
-            My shortlist
+            <Star className="size-3.5 text-muted-foreground" />
+            {t("shortlist")}
           </CommandItem>
         </CommandGroup>
 
         {recent.length > 0 && (
           <>
             <CommandSeparator className="my-1 bg-border/60" />
-            <CommandGroup heading="Recent Searches">
+            <CommandGroup heading={t("recent")}>
               {recent.map((r) => (
                 <CommandItem
                   key={r}
@@ -121,7 +123,7 @@ export function CommandPalette({
                   }}
                   className="rounded-lg text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <HistoryIcon className="size-3.5 text-muted-foreground/70" />
+                  <Clock className="size-3.5 text-muted-foreground/70" />
                   <span className="truncate">{r}</span>
                 </CommandItem>
               ))}

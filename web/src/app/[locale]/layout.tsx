@@ -1,10 +1,15 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { getMessages, setRequestLocale } from "next-intl/server";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { CommandPaletteProvider } from "@/components/command-palette-provider";
+import { GoogleAnalytics } from "@/components/google-analytics";
 import { Providers } from "@/components/providers";
 import { SiteFooter } from "@/components/site-footer";
-import "./globals.css";
+import { routing } from "@/i18n/routing";
+import "../globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,7 +22,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app",
+  ),
   title: {
     default: "SIH 2026 Problem Statements - Browse All 226",
     template: "%s | SIH 2026 Problem Statements",
@@ -47,24 +54,42 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
+
+export default async function LocaleLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+  setRequestLocale(locale);
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <GoogleAnalytics />
+      </head>
       <body className="flex min-h-full flex-col">
-        <Providers>
-          <CommandPaletteProvider>
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-          </CommandPaletteProvider>
-        </Providers>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>
+            <CommandPaletteProvider>
+              <main className="flex-1">{children}</main>
+              <SiteFooter />
+            </CommandPaletteProvider>
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

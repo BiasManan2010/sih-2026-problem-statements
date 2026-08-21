@@ -1,6 +1,7 @@
 "use client";
 
-import { ListIcon, LayoutGridIcon, SlidersHorizontalIcon, XIcon, ChevronLeftIcon, ChevronRightIcon, FilterIcon, SearchXIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Cross, GridSquare, Inbox, SettingsSliders, Tabs as ListViewIcon } from "@/components/icons/geist";
+import { useTranslations, useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -48,14 +49,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RotateCcwIcon, ArrowUpDownIcon } from "lucide-react";
 import {
-  SearchIcon,
-  RotateCcwIcon,
-  ArrowUpDownIcon,
-  Building2Icon,
-  LayersIcon,
-  DatabaseIcon,
-} from "lucide-react";
+  Box,
+  Database,
+  Globe,
+  MagnifyingGlass,
+} from "@/components/icons/geist";
 
 function CategoryTabs({
   value,
@@ -64,6 +64,7 @@ function CategoryTabs({
   value: FilterState["categories"];
   onChange: (v: FilterState["categories"]) => void;
 }) {
+  const t = useTranslations("explorer");
   const active = value.length === 0 ? "all" : value.length === 1 ? value[0] : "both";
   return (
     <Tabs
@@ -76,26 +77,29 @@ function CategoryTabs({
     >
       <TabsList className="grid w-full grid-cols-3 rounded-xl border border-border/60 bg-muted/40 p-1 sm:w-auto">
         <TabsTrigger value="all" className="rounded-lg font-medium text-xs px-3 transition-all">
-          All <span className="ml-1 font-mono text-[10px] text-muted-foreground">({stats.total})</span>
+          {t("tabAll", { count: stats.total })}
         </TabsTrigger>
         <TabsTrigger value="Software" className="rounded-lg font-medium text-xs px-3 transition-all">
-          Software <span className="ml-1 font-mono text-[10px] text-muted-foreground">({stats.software})</span>
+          {t("tabSoftware", { count: stats.software })}
         </TabsTrigger>
         <TabsTrigger value="Hardware" className="rounded-lg font-medium text-xs px-3 transition-all">
-          Hardware <span className="ml-1 font-mono text-[10px] text-muted-foreground">({stats.hardware})</span>
+          {t("tabHardware", { count: stats.hardware })}
         </TabsTrigger>
       </TabsList>
     </Tabs>
   );
 }
 
-const SORT_LABELS: Record<string, string> = {
-  sno: "Statement ID (Ascending)",
-  title: "Title (A–Z)",
-  theme: "Theme Name",
-  org: "Organization",
-  deadline: "Submission Deadline",
-};
+function sortLabel(t: (k: string) => string, key: string) {
+  const map: Record<string, string> = {
+    sno: "sortSno",
+    title: "sortTitle",
+    theme: "sortTheme",
+    org: "sortOrg",
+    deadline: "sortDeadline",
+  };
+  return t(map[key] || "sortSno");
+}
 
 function FilterControls({
   filters,
@@ -110,6 +114,7 @@ function FilterControls({
   toggleTheme: (t: string) => void;
   onReset: () => void;
 }) {
+  const t = useTranslations("explorer");
   const [themeSearch, setThemeSearch] = useState("");
 
   const filteredThemes = useMemo(() => {
@@ -124,13 +129,13 @@ function FilterControls({
       <CardHeader className="p-4 pb-3 border-b border-border/50">
         <CardTitle className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-foreground">
           <span className="flex items-center gap-2">
-            <FilterIcon className="size-4 text-primary" />
-            <span>Filter Statements</span>
+            <SettingsSliders className="size-4 text-primary" />
+            {t("filterLabel")}
           </span>
           {activeCount > 0 ? (
             <div className="flex items-center gap-1.5">
               <Badge variant="default" className="font-mono text-[10px] h-4 px-1.5 rounded-md">
-                {activeCount} active
+                {activeCount} {t("activeBadge")}
               </Badge>
               <Button
                 variant="ghost"
@@ -143,7 +148,7 @@ function FilterControls({
             </div>
           ) : (
             <Badge variant="outline" className="font-mono text-[10px] text-muted-foreground">
-              {stats.total} total
+              {stats.total} {t("totalBadge")}
             </Badge>
           )}
         </CardTitle>
@@ -153,8 +158,8 @@ function FilterControls({
         {/* Organization Filter */}
         <div className="space-y-2">
           <Label htmlFor="org-filter" className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-            <Building2Icon className="size-3.5 text-muted-foreground" />
-            <span>Organization</span>
+            <Globe className="size-3.5 text-muted-foreground" />
+            {t("orgFilter")}
           </Label>
           <Select
             value={filters.org || "all"}
@@ -162,12 +167,12 @@ function FilterControls({
           >
             <SelectTrigger id="org-filter" className="w-full h-9 rounded-lg border-border/70 bg-background text-xs">
               <SelectValue>
-                {filters.org ? filters.org : `All organizations (${stats.orgs.length})`}
+                {filters.org ? filters.org : t("allOrgs", { count: stats.orgs.length })}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-64">
               <SelectItem value="all" className="text-xs">
-                All organizations ({stats.orgs.length})
+                {t("allOrgs", { count: stats.orgs.length })}
               </SelectItem>
               {stats.orgs.map((o) => (
                 <SelectItem key={o.name} value={o.name} className="text-xs">
@@ -184,21 +189,21 @@ function FilterControls({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-              <LayersIcon className="size-3.5 text-muted-foreground" />
-              <span>Themes</span>
+              <Box className="size-3.5 text-muted-foreground" />
+              {t("themesLabel", { count: stats.themes.length })}
             </Label>
             {filters.themes.length > 0 && (
               <Badge variant="secondary" className="font-mono text-[10px] px-1.5">
-                {filters.themes.length} selected
+                {filters.themes.length} {t("selected")}
               </Badge>
             )}
           </div>
 
           <div className="relative">
-            <SearchIcon className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+            <MagnifyingGlass className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search themes..."
+              placeholder={t("searchThemes")}
               value={themeSearch}
               onChange={(e) => setThemeSearch(e.target.value)}
               className="h-8 pl-8 text-xs rounded-md border-border/70 bg-background"
@@ -208,7 +213,7 @@ function FilterControls({
           <ScrollArea className="h-44 rounded-lg border border-border/50 bg-background/50 p-1.5">
             <div className="space-y-1">
               {filteredThemes.length === 0 ? (
-                <p className="p-2 text-center text-xs text-muted-foreground">No themes found</p>
+                <p className="p-2 text-center text-xs text-muted-foreground">{t("noThemes")}</p>
               ) : (
                 filteredThemes.map((t) => {
                   const checked = filters.themes.includes(t.name);
@@ -250,8 +255,8 @@ function FilterControls({
         {/* Has Dataset Switch */}
         <div className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-background/50 p-2.5">
           <Label htmlFor="dataset-switch" className="flex items-center gap-1.5 text-xs font-medium cursor-pointer">
-            <DatabaseIcon className="size-3.5 text-muted-foreground" />
-            <span>Has attached dataset</span>
+            <Database className="size-3.5 text-muted-foreground" />
+            {t("onlyDataset")}
           </Label>
           <Switch
             id="dataset-switch"
@@ -266,20 +271,20 @@ function FilterControls({
         <div className="space-y-2">
           <Label className="flex items-center gap-1.5 text-xs font-medium text-foreground">
             <ArrowUpDownIcon className="size-3.5 text-muted-foreground" />
-            <span>Sort by</span>
+            {t("sortBy")}
           </Label>
           <Select value={filters.sort || "sno"} onValueChange={(v) => setFilter("sort", v ?? "sno")}>
             <SelectTrigger className="w-full h-9 rounded-lg border-border/70 bg-background text-xs">
               <SelectValue>
-                {SORT_LABELS[filters.sort || "sno"] || "Statement ID (Ascending)"}
+                {sortLabel(t, filters.sort || "sno")}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="text-xs">
-              <SelectItem value="sno">Statement ID (Ascending)</SelectItem>
-              <SelectItem value="title">Title (A–Z)</SelectItem>
-              <SelectItem value="theme">Theme Name</SelectItem>
-              <SelectItem value="org">Organization</SelectItem>
-              <SelectItem value="deadline">Submission Deadline</SelectItem>
+              <SelectItem value="sno">{t("sortSno")}</SelectItem>
+              <SelectItem value="title">{t("sortTitle")}</SelectItem>
+              <SelectItem value="theme">{t("sortTheme")}</SelectItem>
+              <SelectItem value="org">{t("sortOrg")}</SelectItem>
+              <SelectItem value="deadline">{t("sortDeadline")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -293,7 +298,7 @@ function FilterControls({
             onClick={onReset}
           >
             <RotateCcwIcon className="size-3.5" />
-            Reset all filters
+            {t("reset")}
           </Button>
         )}
       </CardContent>
@@ -302,6 +307,8 @@ function FilterControls({
 }
 
 export function Explorer() {
+  const t = useTranslations("explorer");
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const {
     filters,
@@ -347,17 +354,17 @@ export function Explorer() {
 
             <div className="flex items-center gap-3">
               <p className="font-mono text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">{total}</span> of {stats.total} statements
+                <span className="font-semibold text-foreground">{total}</span> {t("showingCount", { totalAll: stats.total })}
               </p>
 
               <Button
                 variant="outline"
                 size="sm"
                 className="relative gap-1.5 lg:hidden rounded-lg border-border/80 text-xs"
-                aria-label="Filters"
+                aria-label={t("filterLabel")}
                 onClick={() => setMobileOpen(true)}
               >
-                <SlidersHorizontalIcon className="size-3.5" />
+                <SettingsSliders className="size-3.5" />
                 Filters
                 {activeCount > 0 && (
                   <Badge className="ml-0.5 h-4 min-w-4 rounded-full px-1 font-mono text-[10px]">
@@ -373,14 +380,14 @@ export function Explorer() {
                 onValueChange={(v) => {
                   if (v.length > 0) setFilter("view", v[0] as ViewMode);
                 }}
-                aria-label="View mode"
+                aria-label={t("filterLabel")}
                 className="hidden rounded-lg border border-border/80 bg-muted/40 p-0.5 sm:flex"
               >
-                <ToggleGroupItem value="grid" aria-label="Grid view" className="rounded-md">
-                  <LayoutGridIcon className="size-3.5" />
+                <ToggleGroupItem value="grid" aria-label={t("viewGrid")} className="rounded-md">
+                  <GridSquare className="size-3.5" />
                 </ToggleGroupItem>
-                <ToggleGroupItem value="list" aria-label="List view" className="rounded-md">
-                  <ListIcon className="size-3.5" />
+                <ToggleGroupItem value="list" aria-label={t("viewList")} className="rounded-md">
+                  <ListViewIcon className="size-3.5" />
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
@@ -389,7 +396,7 @@ export function Explorer() {
           {filters.themes.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                Active Themes:
+                {t("activeThemes")}
               </span>
               {filters.themes.map((t) => (
                 <Badge
@@ -398,7 +405,7 @@ export function Explorer() {
                   className="cursor-pointer gap-1 rounded-md px-2 py-0.5 text-xs transition-colors hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => toggleTheme(t)}
                 >
-                  {t} <XIcon className="size-3" />
+                  {t} <Cross className="size-3" />
                 </Badge>
               ))}
             </div>
@@ -407,20 +414,20 @@ export function Explorer() {
           {pageItems.length === 0 ? (
             <Empty className="border border-dashed border-border/80 bg-card/40 py-20">
               <EmptyMedia variant="icon">
-                <SearchXIcon className="size-4" />
+                <Inbox className="size-4" />
               </EmptyMedia>
               <EmptyHeader>
                 <EmptyTitle className="text-heading-16">
-                  No problem statements match your criteria
+                  {t("noResultsTitle")}
                 </EmptyTitle>
                 <EmptyDescription>
-                  Try adjusting your search terms or clearing specific filters.
+                  {t("noResultsDesc")}
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent>
                 <Button variant="outline" size="sm" className="rounded-lg" onClick={reset}>
-                  <XIcon className="size-3.5" />
-                  Clear all filters
+                  <Cross className="size-3.5" />
+                  {t("clearFilters")}
                 </Button>
               </EmptyContent>
             </Empty>
@@ -449,11 +456,11 @@ export function Explorer() {
                 {filters.page > 1 && (
                   <PaginationItem>
                     <PaginationLink
-                      href={urlFor({ page: filters.page - 1 })}
-                      aria-label="Previous page"
+                      href={`/${locale}${urlFor({ page: filters.page - 1 })}`}
+                      aria-label={t("prevPage")}
                       className="rounded-lg border border-border/80"
                     >
-                      <ChevronLeftIcon className="size-4" />
+                      <ChevronLeft className="size-4" />
                     </PaginationLink>
                   </PaginationItem>
                 )}
@@ -479,7 +486,7 @@ export function Explorer() {
                     ) : (
                       <PaginationItem key={p}>
                         <PaginationLink
-                          href={urlFor({ page: p })}
+                          href={`/${locale}${urlFor({ page: p })}`}
                           isActive={p === filters.page}
                           className="rounded-lg font-mono text-xs"
                         >
@@ -491,11 +498,11 @@ export function Explorer() {
                 {filters.page < pageCount && (
                   <PaginationItem>
                     <PaginationLink
-                      href={urlFor({ page: filters.page + 1 })}
-                      aria-label="Next page"
+                      href={`/${locale}${urlFor({ page: filters.page + 1 })}`}
+                      aria-label={t("nextPage")}
                       className="rounded-lg border border-border/80"
                     >
-                      <ChevronRightIcon className="size-4" />
+                      <ChevronRight className="size-4" />
                     </PaginationLink>
                   </PaginationItem>
                 )}
@@ -503,7 +510,7 @@ export function Explorer() {
             </Pagination>
           )}
           <p className="pb-4 text-center font-mono text-[11px] text-muted-foreground">
-            Showing page {filters.page} of {pageCount} ({Math.min(PAGE_SIZE, Math.max(0, total - (filters.page - 1) * PAGE_SIZE))} items on this page)
+            {t("pageInfo", { shown: Math.min(PAGE_SIZE, Math.max(0, total - (filters.page - 1) * PAGE_SIZE)), total })}
           </p>
         </div>
       </div>
@@ -511,9 +518,9 @@ export function Explorer() {
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="right" className="w-80 border-l border-border bg-background">
           <SheetHeader>
-            <SheetTitle className="font-semibold text-base">Filter Statements</SheetTitle>
+            <SheetTitle className="font-semibold text-base">{t("filterLabel")}</SheetTitle>
             <SheetDescription className="text-xs">
-              Refine Smart India Hackathon problem statements.
+              {t("filterDesc")}
             </SheetDescription>
           </SheetHeader>
           <div className="mt-6">

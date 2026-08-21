@@ -1,6 +1,7 @@
 "use client";
 
-import { BookmarkIcon } from "lucide-react";
+import { Star } from "@/components/icons/geist";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ export function ShortlistButton({
 }) {
   const { isShortlisted, toggle } = useShortlist();
   const active = isShortlisted(psNumber);
+  const t = useTranslations("shortlistBtn");
 
   return (
     <Tooltip>
@@ -30,7 +32,7 @@ export function ShortlistButton({
                 ? `size-7 rounded-lg border border-border/60 ${active ? "bg-primary/15 border-primary/40 text-primary" : "bg-muted/30 hover:bg-muted/70 text-muted-foreground hover:text-foreground"} shrink-0 p-0 shadow-2xs transition-colors`
                 : undefined
             }
-            aria-label={active ? "Remove from shortlist" : "Add to shortlist"}
+            aria-label={active ? t("remove") : t("add")}
             aria-pressed={active}
             onClick={(e: React.MouseEvent) => {
               e.preventDefault();
@@ -38,11 +40,11 @@ export function ShortlistButton({
               toggle(psNumber);
             }}
           >
-            <BookmarkIcon className={active ? "size-3.5 fill-current" : "size-3.5"} />
+            <Star className={active ? "size-3.5 fill-current" : "size-3.5"} />
           </Button>
         }
       />
-      <TooltipContent>{active ? "Remove from shortlist" : "Add to shortlist"}</TooltipContent>
+      <TooltipContent>{active ? t("remove") : t("add")}</TooltipContent>
     </Tooltip>
   );
 }

@@ -1,15 +1,17 @@
-import { Building2Icon, CpuIcon, LayersIcon, ServerIcon, TrendingUpIcon } from "lucide-react";
+import { Box, ChartBarPeak, CodeBracket, Globe, Router } from "@/components/icons/geist";
+import { getTranslations } from "next-intl/server";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { stats } from "@/lib/ps";
 
-export function StatsSection() {
+export async function StatsSection() {
+  const t = await getTranslations("stats");
   return (
     <section aria-label="Statistics" className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6">
       <div className="flex items-center gap-2 mb-6">
-        <TrendingUpIcon className="size-4 text-muted-foreground" />
+        <ChartBarPeak className="size-4 text-muted-foreground" />
         <h2 className="text-label-13 font-mono uppercase tracking-wider font-semibold text-foreground">
-          Database Overview & Metrics
+          {t("title")}
         </h2>
       </div>
 
@@ -17,27 +19,27 @@ export function StatsSection() {
         <Card className="border-border/80 bg-card/80 transition-all duration-200 hover:border-gray-500 dark:hover:border-gray-500">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-label-12 font-medium text-muted-foreground">
-              <span>Total Problem Statements</span>
-              <LayersIcon className="size-4 text-gray-700 dark:text-gray-500" />
+              {t("totalCard")}
+              <Box className="size-4 text-gray-700 dark:text-gray-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-mono text-heading-32 text-foreground">{stats.total}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">Smart India Hackathon 2026</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{t("totalSub")}</p>
           </CardContent>
         </Card>
 
         <Card className="border-border/80 bg-card/80 transition-all duration-200 hover:border-gray-500 dark:hover:border-gray-500">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-label-12 font-medium text-muted-foreground">
-              <span>Software Category</span>
-              <ServerIcon className="size-4 text-blue-700 dark:text-blue-600" />
+              {t("softwareCard")}
+              <CodeBracket className="size-4 text-blue-700 dark:text-blue-600" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-mono text-heading-32 text-foreground">{stats.software}</p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              {((stats.software / stats.total) * 100).toFixed(0)}% of all statements
+              {t("softwareSub", { percent: ((stats.software / stats.total) * 100).toFixed(0) })}
             </p>
           </CardContent>
         </Card>
@@ -45,14 +47,14 @@ export function StatsSection() {
         <Card className="border-border/80 bg-card/80 transition-all duration-200 hover:border-gray-500 dark:hover:border-gray-500">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-label-12 font-medium text-muted-foreground">
-              <span>Hardware Category</span>
-              <CpuIcon className="size-4 text-amber-700 dark:text-amber-500" />
+              {t("hardwareCard")}
+              <Router className="size-4 text-amber-700 dark:text-amber-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-mono text-heading-32 text-foreground">{stats.hardware}</p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              {((stats.hardware / stats.total) * 100).toFixed(0)}% of all statements
+              {t("hardwareSub", { percent: ((stats.hardware / stats.total) * 100).toFixed(0) })}
             </p>
           </CardContent>
         </Card>
@@ -60,13 +62,13 @@ export function StatsSection() {
         <Card className="border-border/80 bg-card/80 transition-all duration-200 hover:border-gray-500 dark:hover:border-gray-500">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-label-12 font-medium text-muted-foreground">
-              <span>Participating Orgs</span>
-              <Building2Icon className="size-4 text-purple-700 dark:text-purple-500" />
+              {t("orgsCard")}
+              <Globe className="size-4 text-purple-700 dark:text-purple-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-mono text-heading-32 text-foreground">{stats.orgs.length}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">Ministries & Departments</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{t("orgsSub")}</p>
           </CardContent>
         </Card>
       </div>
@@ -75,8 +77,8 @@ export function StatsSection() {
         <Card className="border-border/80 bg-card/80">
           <CardHeader className="pb-3 border-b border-border/60">
             <CardTitle className="text-heading-16 flex items-center justify-between">
-              <span>Top Theme Domains</span>
-              <span className="font-mono text-[10px] text-muted-foreground">Distribution</span>
+              {t("themesCard")}
+              <span className="font-mono text-[10px] text-muted-foreground">{t("distribution")}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3.5 pt-4">
@@ -100,8 +102,8 @@ export function StatsSection() {
         <Card className="border-border/80 bg-card/80">
           <CardHeader className="pb-3 border-b border-border/60">
             <CardTitle className="text-heading-16 flex items-center justify-between">
-              <span>Top Submitting Organizations</span>
-              <span className="font-mono text-[10px] text-muted-foreground">Count</span>
+              {t("orgsCard2")}
+              <span className="font-mono text-[10px] text-muted-foreground">{t("count")}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3.5 pt-4">

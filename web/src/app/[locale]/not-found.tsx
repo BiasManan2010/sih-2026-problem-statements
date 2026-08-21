@@ -1,17 +1,20 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 
 export default function NotFound() {
+  const t = useTranslations("notFound");
+
   return (
     <div className="flex flex-col items-center gap-4 py-24 text-center">
       <p className="text-6xl font-bold text-muted-foreground">404</p>
-      <h1 className="text-heading-24">Problem statement not found</h1>
-      <p className="max-w-sm text-sm text-muted-foreground">
-        This statement does not exist or has been removed from the archive.
-      </p>
+      <h1 className="text-heading-24">{t("title")}</h1>
+      <p className="max-w-sm text-sm text-muted-foreground">{t("desc")}</p>
       <Button render={<Link href="/" />} nativeButton={false}>
-        Browse all statements
+        {t("back")}
       </Button>
     </div>
   );

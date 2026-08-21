@@ -1,14 +1,14 @@
 "use client";
 
-import { ArrowUpRightIcon, Building2Icon, DatabaseIcon, TagIcon } from "lucide-react";
-import Link from "next/link";
+import { Database, External, Flag, Globe } from "@/components/icons/geist";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
+
+import { Link } from "@/i18n/navigation";
 
 import { DeadlineCountdown } from "@/components/deadline-countdown";
 import { Highlight, markQuery } from "@/components/highlight";
-import { PsOpenInChat } from "@/components/ps-open-in-chat";
 import { ShortlistButton } from "@/components/shortlist-button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { descriptionExcerpt, type ProblemStatement } from "@/lib/ps";
 
@@ -28,6 +28,7 @@ export function PsCard({
   );
 
   const isSoftware = ps.category === "Software";
+  const t = useTranslations("card");
 
   const cardClass =
     "group relative overflow-hidden rounded-xl border border-border/70 bg-card/80 transition-all duration-200 hover:border-foreground/25 hover:shadow-lg dark:hover:border-foreground/30 dark:hover:shadow-primary/5" +
@@ -37,8 +38,8 @@ export function PsCard({
     <span
       className={
         isSoftware
-          ? "inline-flex items-center rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 font-mono text-[11px] font-medium text-sky-700 dark:text-sky-400"
-          : "inline-flex items-center rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[11px] font-medium text-amber-700 dark:text-amber-400"
+          ? "inline-flex items-center rounded-md border border-blue-600/30 bg-blue-600/10 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 dark:text-blue-600"
+          : "inline-flex items-center rounded-md border border-amber-600/30 bg-amber-600/10 px-2 py-0.5 font-mono text-[11px] font-medium text-amber-700 dark:text-amber-500"
       }
     >
       {ps.category}
@@ -47,24 +48,21 @@ export function PsCard({
 
   const themeTag = (
     <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/40 px-2 py-0.5 text-[11px] font-normal text-muted-foreground transition-colors group-hover:border-border/80">
-      <TagIcon className="size-3 text-muted-foreground/70 shrink-0" />
+      <Flag className="size-3 text-muted-foreground/70 shrink-0" />
       <span className="truncate max-w-[150px] sm:max-w-[180px]">{ps.theme}</span>
     </span>
   );
 
   const datasetTag =
     ps.dataset_link.trim() ? (
-      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10.5px] font-medium text-emerald-700 dark:text-emerald-400">
-        <DatabaseIcon className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+      <span className="inline-flex items-center gap-1 rounded-md border border-green-600/30 bg-green-600/10 px-2 py-0.5 font-mono text-[10.5px] font-medium text-green-700 dark:text-green-500">
+        <Database className="size-3 text-green-700 dark:text-green-500 shrink-0" />
         Dataset
       </span>
     ) : null;
 
   const actions = (
     <div className="flex items-center gap-1 shrink-0">
-      <div onClick={(e) => e.preventDefault()}>
-        <PsOpenInChat ps={ps} size="icon" />
-      </div>
       <div onClick={(e) => e.preventDefault()}>
         <ShortlistButton psNumber={ps.ps_number} variant="outline" size="icon" />
       </div>
@@ -90,7 +88,7 @@ export function PsCard({
                 <span>
                   <Highlight text={title} />
                 </span>
-                <ArrowUpRightIcon className="size-4 shrink-0 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <External className="size-4 shrink-0 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </h3>
 
               <p className="line-clamp-2 text-copy-14 text-muted-foreground">
@@ -99,14 +97,14 @@ export function PsCard({
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5 text-label-12 text-muted-foreground">
                 <span className="flex items-center gap-1.5 truncate max-w-[280px]" title={ps.org}>
-                  <Building2Icon className="size-3.5 shrink-0 text-muted-foreground/70" />
+                  <Globe className="size-3.5 shrink-0 text-muted-foreground/70" />
                   <span className="truncate">{ps.org}</span>
                 </span>
                 <span className="shrink-0 font-mono text-[11px]">
-                  Deadline: {ps.deadline}
+                  {t("deadline", { deadline: ps.deadline })}
                 </span>
                 {ps.ideas && (
-                  <span className="shrink-0 font-mono text-[11px]">{ps.ideas} ideas</span>
+                  <span className="shrink-0 font-mono text-[11px]">{t("ideas", { ideas: ps.ideas })}</span>
                 )}
               </div>
             </div>
@@ -141,7 +139,7 @@ export function PsCard({
                 <span>
                   <Highlight text={title} />
                 </span>
-                <ArrowUpRightIcon className="size-4 shrink-0 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <External className="size-4 shrink-0 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </h3>
 
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
@@ -157,7 +155,7 @@ export function PsCard({
               className="flex items-center gap-1.5 min-w-0 flex-1 text-muted-foreground/90 group-hover:text-foreground/90 transition-colors"
               title={ps.org}
             >
-              <Building2Icon className="size-3.5 shrink-0 text-muted-foreground/70" />
+              <Globe className="size-3.5 shrink-0 text-muted-foreground/70" />
               <span className="truncate text-[12px] font-medium">{ps.org}</span>
             </span>
             <span className="shrink-0 font-mono text-[11px] text-muted-foreground/80">{ps.deadline}</span>

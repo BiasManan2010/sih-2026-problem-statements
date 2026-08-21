@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Building2Icon, CpuIcon, LayersIcon, ServerIcon } from "lucide-react";
+import { Box, CodeBracket, Globe, Router } from "@/components/icons/geist";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
 
 import { Explorer } from "@/components/explorer";
@@ -9,15 +10,42 @@ import { SearchBar } from "@/components/search-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { StatsSection } from "@/components/stats-section";
+import { routing } from "@/i18n/routing";
 import { stats } from "@/lib/ps";
 
-export const metadata: Metadata = {
-  alternates: {
-    canonical: "/",
-  },
-};
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app";
 
-export default function HomePage() {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  const path = (loc: string) => `${SITE_URL}/${loc}`;
+
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical: path(locale),
+      languages: Object.fromEntries(
+        routing.locales.map((loc) => [loc, path(loc)]),
+      ),
+    },
+  };
+}
+
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations();
+
   return (
     <>
       <JsonLd
@@ -72,21 +100,23 @@ export default function HomePage() {
               <span className="relative inline-flex size-2 rounded-full bg-green-600" />
             </span>
             <span className="font-mono text-[11px] uppercase tracking-wider text-foreground">
-              SIH 2026 Official Database
+              {t("hero.badgeLive")}
             </span>
             <span className="text-border">|</span>
-            <span className="text-muted-foreground">All 226 Statements</span>
+            <span className="text-muted-foreground">{t("hero.badgeAll")}</span>
           </div>
 
           {/* Heading */}
           <div className="space-y-4 max-w-3xl">
             <h1 className="text-heading-40 sm:text-heading-56 text-balance bg-gradient-to-b from-foreground via-foreground/90 to-foreground/60 bg-clip-text text-transparent">
-              Smart India Hackathon 2026 Problem Statements
+              {t("hero.title")}
             </h1>
             <p className="mx-auto max-w-2xl text-copy-18 text-muted-foreground">
-              Explore, filter, search and shortlist all{" "}
-              <strong className="text-foreground">{stats.total} problem statements</strong>{" "}
-              - {stats.software} software and {stats.hardware} hardware challenges - with fast keyboard search and instant insights.
+              {t("hero.subtitle", {
+                total: stats.total,
+                software: stats.software,
+                hardware: stats.hardware,
+              })}
             </p>
           </div>
 
@@ -104,20 +134,24 @@ export default function HomePage() {
           {/* Stat Pills */}
           <div className="flex flex-wrap items-center justify-center gap-2.5 text-label-12 font-medium">
             <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 px-3 py-1.5 font-mono text-muted-foreground backdrop-blur-xs shadow-2xs">
-              <LayersIcon className="size-3.5 text-gray-700 dark:text-gray-500" />
-              <strong className="font-bold text-foreground">{stats.total}</strong> total
+              <Box className="size-3.5 text-gray-700 dark:text-gray-500" />
+              <strong className="font-bold text-foreground">{stats.total}</strong>{" "}
+              {t("hero.pillTotal")}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 px-3 py-1.5 font-mono text-muted-foreground backdrop-blur-xs shadow-2xs">
-              <ServerIcon className="size-3.5 text-blue-700 dark:text-blue-600" />
-              <strong className="font-bold text-foreground">{stats.software}</strong> software
+              <CodeBracket className="size-3.5 text-blue-700 dark:text-blue-600" />
+              <strong className="font-bold text-foreground">{stats.software}</strong>{" "}
+              {t("hero.pillSoftware")}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 px-3 py-1.5 font-mono text-muted-foreground backdrop-blur-xs shadow-2xs">
-              <CpuIcon className="size-3.5 text-amber-700 dark:text-amber-500" />
-              <strong className="font-bold text-foreground">{stats.hardware}</strong> hardware
+              <Router className="size-3.5 text-amber-700 dark:text-amber-500" />
+              <strong className="font-bold text-foreground">{stats.hardware}</strong>{" "}
+              {t("hero.pillHardware")}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 px-3 py-1.5 font-mono text-muted-foreground backdrop-blur-xs shadow-2xs">
-              <Building2Icon className="size-3.5 text-purple-700 dark:text-purple-500" />
-              <strong className="font-bold text-foreground">{stats.orgs.length}</strong> organizations
+              <Globe className="size-3.5 text-purple-700 dark:text-purple-500" />
+              <strong className="font-bold text-foreground">{stats.orgs.length}</strong>{" "}
+              {t("hero.pillOrgs")}
             </span>
           </div>
         </div>
@@ -143,4 +177,3 @@ export default function HomePage() {
     </>
   );
 }
-

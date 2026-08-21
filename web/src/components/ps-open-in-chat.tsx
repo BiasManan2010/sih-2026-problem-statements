@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDownIcon, SparklesIcon } from "lucide-react";
+import { ChevronDown, CursorClick } from "@/components/icons/geist";
+import { useTranslations } from "next-intl";
 
 import {
   OpenIn,
@@ -31,6 +32,7 @@ export function PsOpenInChat({
   size?: "sm" | "icon";
   className?: string;
 }) {
+  const t = useTranslations("openInChat");
   const query = psChatPrompt(ps);
 
   return (
@@ -46,15 +48,15 @@ export function PsOpenInChat({
               size === "sm" && "gap-1.5 text-label-12",
               className,
             )}
-            aria-label="Open problem statement in a chat"
+            aria-label={t("aria")}
           >
             {size === "icon" ? (
-              <SparklesIcon className="size-3.5" />
+              <CursorClick className="size-3.5" />
             ) : (
               <>
-                <SparklesIcon className="size-3.5" />
-                Open in chat
-                <ChevronDownIcon className="size-3.5" />
+                <CursorClick className="size-3.5" />
+                {t("label")}
+                <ChevronDown className="size-3.5" />
               </>
             )}
           </Button>
@@ -62,7 +64,7 @@ export function PsOpenInChat({
       />
       <OpenInContent>
         <DropdownMenuGroup>
-          <OpenInLabel>Open with problem statement</OpenInLabel>
+          <OpenInLabel>{t("menuLabel")}</OpenInLabel>
           <OpenInSeparator />
           <OpenInChatGPT />
           <OpenInClaude />

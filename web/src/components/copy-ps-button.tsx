@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckIcon, ClipboardIcon } from "lucide-react";
+import { Check, Copy } from "@/components/icons/geist";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -19,15 +20,16 @@ export function CopyPsButton({
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const t = useTranslations("copyPs");
 
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(psMarkdown(ps));
       setCopied(true);
-      toast.success(`${ps.ps_number} copied as Markdown`);
+      toast.success(t("success", { id: ps.ps_number }));
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast.error("Could not copy to clipboard");
+      toast.error(t("error"));
     }
   };
 
@@ -45,18 +47,18 @@ export function CopyPsButton({
               e.stopPropagation();
               copy();
             }}
-            aria-label="Copy problem statement as Markdown"
+            aria-label={t("label")}
           >
             {copied ? (
-              <CheckIcon className="size-3.5 text-green-700 dark:text-green-500" />
+              <Check className="size-3.5 text-green-700 dark:text-green-500" />
             ) : (
-              <ClipboardIcon className="size-3.5" />
+              <Copy className="size-3.5" />
             )}
-            {size === "sm" && (copied ? "Copied" : "Copy")}
+            {size === "sm" && (copied ? t("copied") : t("copy"))}
           </Button>
         }
       />
-      <TooltipContent>Copy as Markdown</TooltipContent>
+      <TooltipContent>{t("label")}</TooltipContent>
     </Tooltip>
   );
 }

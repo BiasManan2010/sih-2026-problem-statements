@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  CheckIcon,
-  ClipboardCopyIcon,
-  FileTextIcon,
-  Link2Icon,
-  SendIcon,
-} from "lucide-react";
+import { Check, Copy, External, FileText, Link } from "@/components/icons/geist";
+import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,44 +16,46 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { psMarkdown, type ProblemStatement } from "@/lib/ps";
 
-function useClipboard() {
+function useClipboard(t: ReturnType<typeof useTranslations<"share">>) {
   const [copied, setCopied] = useState(false);
-  const copy = useCallback(async (text: string, message: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      toast.success(message);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      toast.error("Could not copy to clipboard");
-    }
-  }, []);
+  const copy = useCallback(
+    async (text: string, message: string) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        toast.success(message);
+        setTimeout(() => setCopied(false), 1500);
+      } catch {
+        toast.error(t("error"));
+      }
+    },
+    [t],
+  );
   return { copied, copy };
 }
 
 export function ShareMenu({ ps }: { ps: ProblemStatement }) {
-  const { copy } = useClipboard();
+  const t = useTranslations("share");
+  const { copy } = useClipboard(t);
   const url = typeof window !== "undefined" ? window.location.href : "";
   const title = `${ps.ps_number} · ${ps.title}`;
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" size="sm">Share</Button>} />
+      <DropdownMenuTrigger
+        render={<Button variant="outline" size="sm">{t("trigger")}</Button>}
+      />
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Share {ps.ps_number}</DropdownMenuLabel>
-        <DropdownMenuItem
-          onClick={() => copy(url, "Link copied")}
-        >
-          <Link2Icon className="size-4" />
-          Copy link
+        <DropdownMenuLabel>{t("label", { id: ps.ps_number })}</DropdownMenuLabel>
+        <DropdownMenuItem onClick={() => copy(url, t("linkCopied"))}>
+          <Link className="size-4" />
+          {t("copyLink")}
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() =>
-            copy(psMarkdown(ps), "Problem statement copied as Markdown")
-          }
+          onClick={() => copy(psMarkdown(ps), t("copied"))}
         >
-          <FileTextIcon className="size-4" />
-          Copy as Markdown
+          <FileText className="size-4" />
+          {t("copyMarkdown")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -70,8 +67,8 @@ export function ShareMenu({ ps }: { ps: ProblemStatement }) {
             )
           }
         >
-          <SendIcon className="size-4" />
-          Share on WhatsApp
+          <External className="size-4" />
+          {t("whatsapp")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() =>
@@ -82,8 +79,8 @@ export function ShareMenu({ ps }: { ps: ProblemStatement }) {
             )
           }
         >
-          <SendIcon className="size-4" />
-          Share on Telegram
+          <External className="size-4" />
+          {t("telegram")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() =>
@@ -94,12 +91,12 @@ export function ShareMenu({ ps }: { ps: ProblemStatement }) {
             )
           }
         >
-          <CheckIcon className="size-4" />
-          Post on X
+          <Check className="size-4" />
+          {t("x")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => copy(url, "Link copied")}>
-          <ClipboardCopyIcon className="size-4" />
-          Copy short description
+        <DropdownMenuItem onClick={() => copy(url, t("linkCopied"))}>
+          <Copy className="size-4" />
+          {t("copyLink")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
-import {
-  Building2Icon,
-  CalendarIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DatabaseIcon,
-  ExternalLinkIcon,
-  TagIcon,
-} from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Database, External, Flag, Globe } from "@/components/icons/geist";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -19,6 +12,7 @@ import { NotesDialog } from "@/components/notes-dialog";
 import { PsCard } from "@/components/ps-card";
 import { PsOpenInChat } from "@/components/ps-open-in-chat";
 import { ShareMenu } from "@/components/share-menu";
+import { ShareWhatsAppButton } from "@/components/share-whatsapp";
 import { ShortlistButton } from "@/components/shortlist-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -32,6 +26,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { getPathname } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
 import {
   PS_BY_NUMBER,
   problemStatements,
@@ -40,7 +36,7 @@ import {
 } from "@/lib/ps";
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-statements.vercel.app";
@@ -48,22 +44,30 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sih-2026-problem-s
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return problemStatements.map((ps) => ({ id: ps.ps_number }));
+  return routing.locales.flatMap((locale) =>
+    problemStatements.map((ps) => ({ locale, id: ps.ps_number })),
+  );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { locale, id } = await params;
   const ps = PS_BY_NUMBER.get(id);
   if (!ps) return {};
   const title = `${ps.ps_number} · ${ps.title}`;
+  const url = (loc: string) =>
+    `${SITE_URL}${getPathname({ href: `/ps/${ps.ps_number}`, locale: loc })}`;
+
   return {
     title,
     description: descriptionExcerpt(ps, 160),
-    alternates: { canonical: `/ps/${ps.ps_number}` },
+    alternates: {
+      canonical: url(locale),
+      languages: Object.fromEntries(routing.locales.map((loc) => [loc, url(loc)])),
+    },
     openGraph: {
       title,
       description: descriptionExcerpt(ps, 200),
-      url: `/ps/${ps.ps_number}`,
+      url: url(locale),
       type: "article",
     },
   };
@@ -88,7 +92,9 @@ function similarStatements(ps: ProblemStatement): ProblemStatement[] {
 }
 
 export default async function PsPage({ params }: Props) {
-  const { id } = await params;
+  const { locale, id } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations();
   const ps = PS_BY_NUMBER.get(id);
   if (!ps) notFound();
 
@@ -98,13 +104,13 @@ export default async function PsPage({ params }: Props) {
   const similar = similarStatements(ps);
 
   const meta = [
-    { label: "Organization", value: ps.org },
-    { label: "Department", value: ps.department },
-    { label: "Category", value: ps.category },
-    { label: "Theme", value: ps.theme },
-    { label: "Deadline", value: ps.deadline },
-    { label: "Submitted Ideas", value: ps.ideas },
-  ];
+    { key: "labelOrg", value: ps.org },
+    { key: "labelDept", value: ps.department },
+    { key: "labelCategory", value: ps.category },
+    { key: "labelTheme", value: ps.theme },
+    { key: "labelDeadline", value: ps.deadline },
+    { key: "labelIdeas", value: ps.ideas },
+  ] as const;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
@@ -134,7 +140,9 @@ export default async function PsPage({ params }: Props) {
       <Breadcrumb className="py-2 text-label-12">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/">All Statements</BreadcrumbLink>
+            <BreadcrumbLink href={getPathname({ href: "/", locale })}>
+              {t("detail.breadcrumbAll")}
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -166,15 +174,18 @@ export default async function PsPage({ params }: Props) {
               {ps.category}
             </span>
             <Badge variant="secondary" className="gap-1 font-normal text-xs">
-              <TagIcon className="size-3 text-muted-foreground" />
+              <Flag className="size-3 text-muted-foreground" />
               {ps.theme}
             </Badge>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <ShortlistButton psNumber={ps.ps_number} variant="outline" size="sm" />
           <CopyPsButton ps={ps} />
+          <ShareWhatsAppButton
+            text={`${ps.ps_number} · ${ps.title}\n\n${descriptionExcerpt(ps, 500)}\n\n${getPathname({ href: `/ps/${ps.ps_number}`, locale })}`}
+          />
           <PsOpenInChat ps={ps} />
           <ShareMenu ps={ps} />
           <NotesDialog psNumber={ps.ps_number} title={ps.title} />
@@ -186,12 +197,16 @@ export default async function PsPage({ params }: Props) {
           <Card className="border-border/80 bg-card">
             <CardContent className="space-y-4 p-5">
               <h2 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                Metadata & Specs
+                {t("detail.metadata")}
               </h2>
               {meta.map((m) => (
-                <div key={m.label} className="space-y-0.5">
-                  <p className="font-mono text-label-12 text-muted-foreground uppercase tracking-wider">{m.label}</p>
-                  <p className="text-label-14 font-semibold text-foreground leading-snug">{m.value || "N/A"}</p>
+                <div key={m.key} className="space-y-0.5">
+                  <p className="font-mono text-label-12 text-muted-foreground uppercase tracking-wider">
+                    {t(`detail.${m.key}`)}
+                  </p>
+                  <p className="text-label-14 font-semibold text-foreground leading-snug">
+                    {m.value || t("detail.noData")}
+                  </p>
                 </div>
               ))}
               <Separator className="bg-border/60" />
@@ -209,8 +224,8 @@ export default async function PsPage({ params }: Props) {
                     />
                   }
                 >
-                  <ExternalLinkIcon className="size-3.5" />
-                  Open on sih.gov.in
+                  <External className="size-3.5" />
+                  {t("detail.openOnSih")}
                 </Button>
                 {ps.dataset_link.trim() && (
                   <Button
@@ -226,13 +241,13 @@ export default async function PsPage({ params }: Props) {
                       />
                     }
                   >
-                    <DatabaseIcon className="size-3.5 text-green-700 dark:text-green-500" />
-                    View attached dataset
+                    <Database className="size-3.5 text-green-700 dark:text-green-500" />
+                    {t("detail.viewDataset")}
                   </Button>
                 )}
                 {ps.contact.trim() && (
                   <p className="text-xs text-muted-foreground">
-                    Contact: {ps.contact}
+                    {t("detail.contact", { contact: ps.contact })}
                   </p>
                 )}
               </div>
@@ -243,14 +258,14 @@ export default async function PsPage({ params }: Props) {
             <Card className="border-border/80 bg-card">
               <CardContent className="space-y-3 p-4">
                 <h2 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  Quick Navigation
+                  {t("detail.quickNav")}
                 </h2>
                 <div className="grid grid-cols-2 gap-2">
                   {prev ? (
-                    <Link href={`/ps/${prev.ps_number}`}>
+                    <Link href={getPathname({ href: `/ps/${prev.ps_number}`, locale })}>
                       <Button variant="ghost" size="sm" className="h-auto w-full flex-col items-start gap-0.5 rounded-lg px-2.5 py-2">
                         <span className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
-                          <ChevronLeftIcon className="size-3" /> Prev
+                          <ChevronLeft className="size-3" /> {t("detail.prev")}
                         </span>
                         <span className="line-clamp-1 font-mono text-xs font-semibold text-foreground">{prev.ps_number}</span>
                       </Button>
@@ -259,10 +274,10 @@ export default async function PsPage({ params }: Props) {
                     <span />
                   )}
                   {next ? (
-                    <Link href={`/ps/${next.ps_number}`}>
+                    <Link href={getPathname({ href: `/ps/${next.ps_number}`, locale })}>
                       <Button variant="ghost" size="sm" className="h-auto w-full flex-col items-end gap-0.5 rounded-lg px-2.5 py-2">
                         <span className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
-                          Next <ChevronRightIcon className="size-3" />
+                          {t("detail.next")} <ChevronRight className="size-3" />
                         </span>
                         <span className="line-clamp-1 font-mono text-xs font-semibold text-foreground">{next.ps_number}</span>
                       </Button>
@@ -280,7 +295,7 @@ export default async function PsPage({ params }: Props) {
           <Card className="border-border/80 bg-card">
             <CardContent className="p-6">
               <h2 className="mb-4 font-mono text-label-12 font-semibold uppercase tracking-wider text-foreground">
-                Problem Description & Statement Details
+                {t("detail.description")}
               </h2>
               <Description text={ps.description} />
             </CardContent>
@@ -289,9 +304,9 @@ export default async function PsPage({ params }: Props) {
           {similar.length > 0 && (
             <div className="space-y-4 pt-4">
               <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground flex items-center justify-between">
-                <span>Similar Problem Statements</span>
+                <span>{t("detail.similarTitle")}</span>
                 <span className="font-sans text-xs font-normal text-muted-foreground">
-                  Same Theme or Organization
+                  {t("detail.similarSub")}
                 </span>
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -305,15 +320,14 @@ export default async function PsPage({ params }: Props) {
       </div>
 
       <p className="mt-12 flex items-center justify-center gap-2 border-t border-border/60 pt-6 font-mono text-label-12 text-muted-foreground">
-        <Building2Icon className="size-3.5" />
-        <span>{ps.org}</span>
-        <span>•</span>
-        <span>{ps.category}</span>
-        <span>•</span>
-        <span>Deadline: {ps.deadline}</span>
-        <CalendarIcon className="ml-1 size-3.5" />
+        <Globe className="size-3.5" />
+        {t("detail.footerOrg", {
+          org: ps.org,
+          category: ps.category,
+          deadline: ps.deadline,
+        })}
+        <Calendar className="ml-1 size-3.5" />
       </p>
     </div>
   );
 }
-
