@@ -495,3 +495,27 @@
       transparent 70%
     );
 }
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ds-gray-500) transparent;
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--ds-gray-500);
+    border-radius: 9999px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}

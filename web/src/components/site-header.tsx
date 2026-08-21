@@ -1,6 +1,6 @@
 "use client";
 
-import {BookmarkIcon, SearchIcon} from "lucide-react";
+import { BookmarkIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -20,23 +20,11 @@ export function SiteHeader({ onOpenCommand }: { onOpenCommand: () => void }) {
           href="/"
           className="group flex items-center gap-2.5 font-medium tracking-tight text-foreground transition-opacity hover:opacity-90"
         >
-          {/* Vercel Geometric Logo Icon */}
-          <div className="flex size-7 items-center justify-center rounded-lg bg-foreground text-background shadow-xs transition-transform group-hover:scale-105">
-            <svg
-              className="size-3.5 fill-current"
-              viewBox="0 0 76 65"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
-            </svg>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-            <span className="text-label-16 font-semibold">SIH 2026</span>
-            <span className="hidden text-label-13 text-muted-foreground sm:inline">
-              Problem Statements
-            </span>
-          </div>
+          <span className="text-heading-14">Smart India Hackathon</span>
+          <span className="hidden text-muted-foreground sm:inline">/</span>
+          <span className="hidden text-label-13 text-muted-foreground sm:inline">
+            Problem Statements
+          </span>
           <Badge
             variant="outline"
             className="hidden font-mono text-[10px] text-muted-foreground sm:inline-flex"

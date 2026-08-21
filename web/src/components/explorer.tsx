@@ -106,7 +106,7 @@ function FilterControls({
         <Label className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
           Themes ({stats.themes.length})
         </Label>
-        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1">
+        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto scrollbar-none pr-1">
           {stats.themes.map((t) => {
             const active = filters.themes.includes(t.name);
             return (
@@ -199,7 +199,7 @@ export function Explorer() {
     <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
       <div className="flex flex-col gap-6 py-6 lg:flex-row lg:gap-8">
         <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto pr-2">
+          <div className="sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto scrollbar-thin pr-2">
             <div className="flex items-center gap-2 pb-2 border-b border-border/60">
               <FilterIcon className="size-4 text-muted-foreground" />
               <span className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">

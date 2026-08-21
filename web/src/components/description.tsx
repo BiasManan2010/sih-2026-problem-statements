@@ -3,6 +3,7 @@
 import { useMemo, type ReactNode } from "react";
 
 const BOLD = /\*\*(.+?)\*\*/g;
+const SECTION_TITLE = /^[A-Z][A-Za-z ]{2,40}:$/;
 
 function renderInline(text: string, keyBase: string): ReactNode[] {
   const nodes: ReactNode[] = [];
@@ -23,10 +24,12 @@ function renderInline(text: string, keyBase: string): ReactNode[] {
   return nodes;
 }
 
+type Block = { type: "h" | "ul" | "p"; text?: string; items?: string[] };
+
 export function Description({ text }: { text: string }) {
   const blocks = useMemo(() => {
     const lines = text.split("\n");
-    const out: { type: "ul" | "p"; items: string[] }[] = [];
+    const out: Block[] = [];
     let currentBullets: string[] | null = null;
 
     const flush = () => {
@@ -46,30 +49,45 @@ export function Description({ text }: { text: string }) {
       if (bullet) {
         if (!currentBullets) currentBullets = [];
         currentBullets.push(bullet[1]);
+      } else if (SECTION_TITLE.test(trimmed)) {
+        flush();
+        out.push({ type: "h", text: trimmed.replace(/:$/, "") });
       } else {
         flush();
-        out.push({ type: "p", items: [trimmed] });
+        out.push({ type: "p", text: trimmed });
       }
     }
     flush();
     return out;
   }, [text]);
 
-  let blockIndex = 0;
   return (
     <div className="space-y-4 text-copy-16 text-foreground/90">
-      {blocks.map((block) => {
-        const key = `b${blockIndex++}`;
+      {blocks.map((block, i) => {
+        if (block.type === "h") {
+          return (
+            <h3
+              key={i}
+              className="flex items-center gap-2 pt-2 text-heading-14 text-foreground"
+            >
+              <span className="h-4 w-1 rounded-full bg-foreground/20" />
+              {block.text}
+            </h3>
+          );
+        }
         if (block.type === "ul") {
           return (
-            <ul key={key} className="ml-5 space-y-2 list-disc marker:text-gray-400">
-              {block.items.map((item, j) => (
-                <li key={j}>{renderInline(item, `${key}-${j}`)}</li>
+            <ul
+              key={i}
+              className="ml-5 space-y-2 list-disc marker:text-gray-400"
+            >
+              {block.items!.map((item, j) => (
+                <li key={j}>{renderInline(item, `${i}-${j}`)}</li>
               ))}
             </ul>
           );
         }
-        return <p key={key}>{renderInline(block.items[0], key)}</p>;
+        return <p key={i}>{renderInline(block.text!, `${i}`)}</p>;
       })}
     </div>
   );

@@ -12,10 +12,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { DeadlineCountdown } from "@/components/deadline-countdown";
+import { CopyPsButton } from "@/components/copy-ps-button";
 import { Description } from "@/components/description";
 import { JsonLd } from "@/components/json-ld";
 import { NotesDialog } from "@/components/notes-dialog";
 import { PsCard } from "@/components/ps-card";
+import { PsOpenInChat } from "@/components/ps-open-in-chat";
 import { ShareMenu } from "@/components/share-menu";
 import { ShortlistButton } from "@/components/shortlist-button";
 import { Badge } from "@/components/ui/badge";
@@ -158,8 +160,10 @@ export default async function PsPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <ShortlistButton psNumber={ps.ps_number} variant="outline" size="sm" />
+          <CopyPsButton ps={ps} />
+          <PsOpenInChat ps={ps} />
           <ShareMenu ps={ps} />
           <NotesDialog psNumber={ps.ps_number} title={ps.title} />
         </div>

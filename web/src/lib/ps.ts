@@ -86,3 +86,51 @@ export function psMarkdown(ps: ProblemStatement): string {
     `Source: https://sih.gov.in/sih2026PS · CC-BY-4.0 · ${ps.scraped_at}`,
   ].join("\n");
 }
+
+const SECTION_TITLE = /^[A-Z][A-Za-z ]{2,40}:$/;
+
+export function splitSections(ps: ProblemStatement): {
+  heading: string;
+  content: string;
+}[] {
+  const sections: { heading: string; content: string[] }[] = [];
+  let current: { heading: string; content: string[] } | null = null;
+  for (const line of ps.description.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (SECTION_TITLE.test(trimmed)) {
+      current = { heading: trimmed.replace(/:$/, ""), content: [] };
+      sections.push(current);
+    } else if (current) {
+      current.content.push(trimmed);
+    } else {
+      sections.push({ heading: "Overview", content: [trimmed] });
+    }
+  }
+  return sections.map((s) => ({
+    heading: s.heading,
+    content: s.content.join("\n"),
+  }));
+}
+
+export function psChatPrompt(ps: ProblemStatement): string {
+  const lines = [
+    `I'm preparing for Smart India Hackathon 2026. Here is a problem statement I'm evaluating:`,
+    ``,
+    `## ${ps.ps_number} — ${ps.title}`,
+    ``,
+    `- **Organization:** ${ps.org}`,
+    `- **Department:** ${ps.department || "N/A"}`,
+    `- **Category:** ${ps.category}`,
+    `- **Theme:** ${ps.theme}`,
+    `- **Deadline for idea submission:** ${ps.deadline}`,
+  ];
+  for (const section of splitSections(ps)) {
+    lines.push("", `### ${section.heading}`, "", section.content);
+  }
+  lines.push(
+    "",
+    "Help me: 1) summarize the core problem, 2) list the key requirements, 3) propose a concrete solution architecture, and 4) outline what I should build for the prototype.",
+  );
+  return lines.join("\n");
+}
