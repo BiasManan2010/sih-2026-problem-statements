@@ -22,25 +22,10 @@ Fast, fully static, SEO-optimized browsing experience:
 - **Fuzzy search** across title, description, organization, theme and PS number
   (⌘K / Ctrl+K command palette, `/` focuses search)
 - **Filters** by theme, category (Software/Hardware), organization, dataset availability
-- **Detail pages** per PS with deadline countdown, similar statements, share/copy,
-  shortlist and private notes
+- **Detail pages** per PS with deadline countdown, similar statements,
+  copy/share/open-in-chat and private notes
 - **Shortlist** (localStorage) with CSV/Markdown export — pick your team's candidates
 - Dark mode, keyboard navigation, mobile-first, fully accessible
-
-**Live site:** deploy on [Vercel](https://vercel.com/new) or
-[Netlify](https://app.netlify.com/start) by importing this repository (framework
-auto-detected, zero config). The app is 100% static — every page is pre-rendered
-at build time (`generateStaticParams`) and CDN-cacheable.
-
-### Deploying
-
-1. Push this repository to GitHub
-2. **Vercel:** [vercel.com/new](https://vercel.com/new) → import repo → deploy.
-   Set `NEXT_PUBLIC_SITE_URL` to your production URL (optional; defaults to the
-   Vercel project URL) for canonical URLs / sitemap.
-3. **Netlify:** [app.netlify.com/start](https://app.netlify.com/start) → import
-   repo → build command `next build`, publish directory `.next`
-   (`netlify.toml` is included).
 
 ### Local development
 
@@ -48,7 +33,7 @@ at build time (`generateStaticParams`) and CDN-cacheable.
 cd web
 pnpm install        # or npm install
 pnpm dev            # http://localhost:3000
-pnpm build          # production build (static export + ISR-ready)
+pnpm build          # production build (fully static, 234 prerendered pages)
 pnpm lint
 ```
 
@@ -61,7 +46,21 @@ pnpm lint
 | Hardware | 54 |
 | Themes | 18 |
 | Source | [sih.gov.in/sih2026PS](https://sih.gov.in/sih2026PS) |
-| Scraped on | 2026-08-21 |
+
+## Automated daily refresh
+
+A [GitHub Actions workflow](.github/workflows/refresh-data.yml) re-scrapes
+sih.gov.in **every 24 hours** (04:00 IST) and automatically:
+
+1. Updates `ps_2026/*.md`, `data/sih2026_ps.json`, `data/sih2026_ps.csv` and
+   `web/src/data/ps.json` with the latest deadlines, submitted-idea counts,
+   dataset links and any new/changed problem statements
+2. Validates the result (record count sanity check + field validation) — if the
+   scrape looks incomplete, nothing is committed
+3. Commits and pushes only when the data actually changed (the scraper is
+   byte-deterministic for unchanged records, so there are no noisy commits)
+
+The workflow can also be triggered manually from the Actions tab.
 
 ## Regenerating the data
 
@@ -80,9 +79,9 @@ Requires `beautifulsoup4` + `lxml`.
   Attribution: "Source: Smart India Hackathon, sih.gov.in".
 - **Code** (scraper, web app): [MIT](LICENSE-CODE).
 
-> **Note:** Deadlines and submitted-idea counts are point-in-time snapshots
-> (scraped 2026-08-21) and may change on sih.gov.in. Always verify on the
-> official portal before submitting.
+> **Note:** Deadlines and submitted-idea counts are point-in-time snapshots and
+> may change on sih.gov.in. Always verify on the official portal before
+> submitting.
 
 ## Contributing
 

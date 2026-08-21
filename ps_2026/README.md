@@ -1,6 +1,6 @@
 # SIH 2026 - Problem Statements
 
-Total: 226 problem statements, scraped from https://sih.gov.in/sih2026PS on 2026-08-21.
+Total: 226 problem statements, scraped from https://sih.gov.in/sih2026PS (last update: 2026-08-21).
 
 Licensed under CC-BY-4.0. Source: Smart India Hackathon (sih.gov.in).
 

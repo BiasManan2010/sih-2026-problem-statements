@@ -25,6 +25,7 @@ import html
 import json
 import re
 import sys
+import time
 import urllib.request
 from datetime import date, datetime
 from pathlib import Path
@@ -65,10 +66,52 @@ def fix_text(text: str) -> str:
     return text
 
 
-def fetch_html(url: str) -> str:
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (SIH-2026-PS-scraper/1.0)"})
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        return resp.read().decode("utf-8", errors="replace")
+def fetch_html(url: str, attempts: int = 4) -> str:
+    last_err = None
+    for i in range(attempts):
+        try:
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "Mozilla/5.0 (SIH-2026-PS-scraper/1.0)"}
+            )
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                return resp.read().decode("utf-8", errors="replace")
+        except Exception as e:  # noqa: BLE001 - network retries
+            last_err = e
+            wait = 8 * (i + 1)
+            print(f"  fetch attempt {i + 1}/{attempts} failed ({e}); retrying in {wait}s")
+            time.sleep(wait)
+    raise RuntimeError(f"Could not fetch {url} after {attempts} attempts: {last_err}")
+
+
+MIN_RECORDS = 200
+
+# Fields that must match for a record to count as "unchanged" (scraped_at excluded)
+CONTENT_KEYS = [
+    "sno", "ps_number", "title", "org", "department", "category", "theme",
+    "deadline", "deadline_date", "ideas", "dataset_link", "contact", "youtube",
+    "description",
+]
+
+
+def load_existing() -> list:
+    path = DATA_DIR / "sih2026_ps.json"
+    if path.exists():
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return []
+    return []
+
+
+def preserve_scrape_dates(records: list, existing: list) -> list:
+    """Keep the original scraped_at for records whose content is unchanged,
+    so the generated artifacts are byte-stable between runs."""
+    by_id = {r["ps_number"]: r for r in existing}
+    for r in records:
+        prev = by_id.get(r["ps_number"])
+        if prev and all(prev.get(k) == r[k] for k in CONTENT_KEYS):
+            r["scraped_at"] = prev.get("scraped_at") or r["scraped_at"]
+    return records
 
 
 def parse(html_text: str):
@@ -147,9 +190,10 @@ def fmt_link(text: str) -> str:
 
 def write_markdown(records: list):
     PS_DIR.mkdir(parents=True, exist_ok=True)
+    last_scrape = max(r["scraped_at"] for r in records)
     index = [
         "# SIH 2026 - Problem Statements", "",
-        f"Total: {len(records)} problem statements, scraped from https://sih.gov.in/sih2026PS on {SCRAPE_DATE}.",
+        f"Total: {len(records)} problem statements, scraped from https://sih.gov.in/sih2026PS (last update: {last_scrape}).",
         "",
         f"Licensed under CC-BY-4.0. Source: Smart India Hackathon (sih.gov.in).",
         "",
@@ -159,7 +203,7 @@ def write_markdown(records: list):
     for r in records:
         safe = re.sub(r"[^\w\-]+", "_", r["ps_number"])
         footer = (f"\n---\n_Source: [sih.gov.in/sih2026PS](https://sih.gov.in/sih2026PS) | "
-                  f"Scraped: {SCRAPE_DATE} | License: CC-BY-4.0_")
+                  f"Scraped: {r['scraped_at']} | License: CC-BY-4.0_")
         body = [
             f"# {r['ps_number']} - {r['title']}", "",
             "## Metadata", "",
@@ -250,6 +294,12 @@ def main():
         html_text = fetch_html(URL)
 
     records = parse(html_text)
+    if len(records) < MIN_RECORDS:
+        sys.exit(
+            f"Sanity check failed: only {len(records)} records parsed "
+            f"(expected >= {MIN_RECORDS}). Refusing to write partial data."
+        )
+    records = preserve_scrape_dates(records, load_existing())
     write_markdown(records)
     write_json(records)
     write_csv(records)
