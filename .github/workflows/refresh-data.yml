@@ -31,13 +31,25 @@ jobs:
         run: pip install beautifulsoup4 lxml
 
       - name: Run scraper
-        run: python scripts/scrape_sih.py
+        id: scrape
+        run: |
+          set +e
+          python scripts/scrape_sih.py
+          code=$?
+          if [ $code -ne 0 ]; then
+            echo "scrape_failed=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Scraper failed with exit code $code - likely transient network issue, will retry on next schedule."
+            exit 0
+          fi
+          echo "scrape_failed=false" >> "$GITHUB_OUTPUT"
 
       - name: Validate artifacts
+        if: steps.scrape.outputs.scrape_failed != 'true'
         run: python scripts/scrape_sih.py --validate
 
       - name: Check for changes
         id: changes
+        if: steps.scrape.outputs.scrape_failed != 'true'
         run: |
           if git diff --quiet; then
             echo "No changes to problem statement data."
@@ -48,7 +60,7 @@ jobs:
           fi
 
       - name: Commit and push
-        if: steps.changes.outputs.changed == 'true'
+        if: steps.scrape.outputs.scrape_failed != 'true' && steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -59,7 +71,9 @@ jobs:
       - name: Report summary
         if: always()
         run: |
-          if [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
+          if [ "${{ steps.scrape.outputs.scrape_failed }}" = "true" ]; then
+            echo "Scrape failed - no data update attempted. Check logs for network errors. Next retry is on next schedule/manual trigger."
+          elif [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
             echo "Data refreshed and pushed. Vercel/Netlify will redeploy automatically."
           else
             echo "Data is up to date. No changes to commit."

@@ -21,11 +21,13 @@ Notes:
 """
 
 import argparse
+import gzip
 import html
 import json
 import re
 import sys
 import time
+import urllib.error
 import urllib.request
 from datetime import date, datetime
 from pathlib import Path
@@ -73,20 +75,60 @@ def fix_text(text: str) -> str:
     return text
 
 
-def fetch_html(url: str, attempts: int = 4) -> str:
+def fetch_html(url: str, attempts: int = 5) -> str:
+    """Fetch HTML with browser-like headers and exponential backoff.
+
+    The SIH portal is hosted behind Apache and occasionally rate-limits
+    GitHub Actions shared runners. Using realistic browser headers and
+    longer timeouts improves success rate on CI.
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Referer": "https://sih.gov.in/",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+    }
     last_err = None
     for i in range(attempts):
         try:
-            req = urllib.request.Request(
-                url, headers={"User-Agent": "Mozilla/5.0 (SIH-2026-PS-scraper/1.0)"}
-            )
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                return resp.read().decode("utf-8", errors="replace")
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=90) as resp:
+                status = getattr(resp, "status", 200)
+                if status >= 400:
+                    raise RuntimeError(f"HTTP {status}")
+                data = resp.read()
+                # Handle gzip if server unexpectedly returns it
+                encoding = resp.headers.get("Content-Encoding", "")
+                if encoding == "gzip":
+                    data = gzip.decompress(data)
+                text = data.decode("utf-8", errors="replace")
+                if not text.strip():
+                    raise RuntimeError("Empty response body")
+                if "dataTablePS" not in text and "<table" not in text:
+                    # Might be a Cloudflare challenge or error page - log snippet
+                    snippet = text[:500].replace("\n", " ")
+                    print(f"  warning: response missing expected table (snippet: {snippet[:200]}...)")
+                return text
         except Exception as e:  # noqa: BLE001 - network retries
             last_err = e
-            wait = 8 * (i + 1)
-            print(f"  fetch attempt {i + 1}/{attempts} failed ({e}); retrying in {wait}s")
-            time.sleep(wait)
+            # Provide detailed error for HTTP errors
+            err_detail = str(e)
+            try:
+                if isinstance(e, urllib.error.HTTPError):
+                    body = e.read().decode("utf-8", errors="replace")[:500] if hasattr(e, "read") else ""
+                    err_detail = f"HTTP {e.code} {e.reason} - {body[:200]}"
+            except Exception:
+                pass
+            if i < attempts - 1:
+                wait = 10 * (2**i)  # 10, 20, 40, 80, 160
+                # Cap wait to avoid exceeding workflow timeout
+                wait = min(wait, 60)
+                print(f"  fetch attempt {i + 1}/{attempts} failed ({err_detail}); retrying in {wait}s")
+                time.sleep(wait)
+            else:
+                print(f"  fetch attempt {i + 1}/{attempts} failed ({err_detail}); no more retries")
     raise RuntimeError(f"Could not fetch {url} after {attempts} attempts: {last_err}")
 
 
