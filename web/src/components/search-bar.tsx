@@ -57,20 +57,20 @@ export function SearchBar() {
         <MagnifyingGlass className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-foreground" />
         <PopoverTrigger
           nativeButton={false}
-          render={
-            <Input
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setOpen(true);
-              }}
-              onFocus={() => setOpen(true)}
-              placeholder={t("searchPlaceholder")}
-              className="h-12 rounded-xl border-border/80 bg-background/90 pl-11 pr-20 text-copy-16 shadow-xs backdrop-blur-md transition-all focus-visible:border-gray-500 dark:focus-visible:border-gray-500 focus-visible:ring-1 focus-visible:ring-blue-600/40"
-              aria-label={t("searchAria")}
-            />
-          }
-        />
+          render={<div className="w-full" />}
+        >
+          <Input
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setOpen(true);
+            }}
+            onFocus={() => setOpen(true)}
+            placeholder={t("searchPlaceholder")}
+            className="h-12 rounded-xl border-border/80 bg-background/90 pl-11 pr-20 text-copy-16 shadow-xs backdrop-blur-md transition-all focus-visible:border-gray-500 dark:focus-visible:border-gray-500 focus-visible:ring-1 focus-visible:ring-blue-600/40"
+            aria-label={t("searchAria")}
+          />
+        </PopoverTrigger>
         {query && (
           <Button
             type="button"
@@ -95,6 +95,8 @@ export function SearchBar() {
         align="start"
         alignOffset={0}
         sideOffset={8}
+        initialFocus={false}
+        finalFocus={false}
         className="w-(--anchor-width) max-w-2xl p-2"
       >
         {results.length > 0 && (

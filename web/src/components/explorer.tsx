@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight, Cross, GridSquare, Inbox, SettingsSliders, Tabs as ListViewIcon } from "@/components/icons/geist";
 import { useTranslations, useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { PsCard } from "@/components/ps-card";
 import { Badge } from "@/components/ui/badge";
@@ -321,6 +321,18 @@ export function Explorer() {
     activeCount,
     urlFor,
   } = useExplorer(searchParams.toString());
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const goToPage = (page: number) => {
+    setFilter("page", page);
+    const resultsTop = resultsRef.current?.getBoundingClientRect().top;
+    if (resultsTop !== undefined) {
+      window.scrollTo({
+        top: window.scrollY + resultsTop - 16,
+        behavior: "smooth",
+      });
+    }
+  };
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -345,7 +357,7 @@ export function Explorer() {
           </div>
         </aside>
 
-        <div className="min-w-0 flex-1 space-y-4">
+        <div ref={resultsRef} className="min-w-0 flex-1 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4">
             <CategoryTabs
               value={filters.categories}
@@ -459,6 +471,10 @@ export function Explorer() {
                       href={`/${locale}${urlFor({ page: filters.page - 1 })}`}
                       aria-label={t("prevPage")}
                       className="rounded-lg border border-border/80"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(filters.page - 1);
+                      }}
                     >
                       <ChevronLeft className="size-4" />
                     </PaginationLink>
@@ -489,6 +505,10 @@ export function Explorer() {
                           href={`/${locale}${urlFor({ page: p })}`}
                           isActive={p === filters.page}
                           className="rounded-lg font-mono text-xs"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            goToPage(p);
+                          }}
                         >
                           {p}
                         </PaginationLink>
@@ -501,6 +521,10 @@ export function Explorer() {
                       href={`/${locale}${urlFor({ page: filters.page + 1 })}`}
                       aria-label={t("nextPage")}
                       className="rounded-lg border border-border/80"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(filters.page + 1);
+                      }}
                     >
                       <ChevronRight className="size-4" />
                     </PaginationLink>

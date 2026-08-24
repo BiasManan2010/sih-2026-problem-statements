@@ -47,12 +47,20 @@ export function applyFilters(
   if (filters.hasDataset) {
     items = items.filter((ps) => ps.dataset_link.trim().length > 0);
   }
+  let searchOrder: Map<string, number> | undefined;
   if (filters.q.trim()) {
     const fuzzy = fuzzySearch(filters.q);
-    if (fuzzy.length) {
-      const fuzzySet = new Set(fuzzy.map((ps) => ps.ps_number));
-      items = items.filter((ps) => fuzzySet.has(ps.ps_number));
-    }
+    searchOrder = new Map(fuzzy.map((ps, index) => [ps.ps_number, index]));
+    const fuzzySet = new Set(fuzzy.map((ps) => ps.ps_number));
+    items = items.filter((ps) => fuzzySet.has(ps.ps_number));
+  }
+
+  if (searchOrder && filters.sort === "sno") {
+    return [...items].sort(
+      (a, b) =>
+        (searchOrder.get(a.ps_number) ?? Number.MAX_SAFE_INTEGER) -
+          (searchOrder.get(b.ps_number) ?? Number.MAX_SAFE_INTEGER),
+    );
   }
 
   return sortItems(items, filters.sort);

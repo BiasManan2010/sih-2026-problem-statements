@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
 
 import {
   activeFilterCount,
@@ -30,7 +29,6 @@ export interface ExplorerState {
 }
 
 export function useExplorer(urlSearch: string): ExplorerState {
-  const router = useRouter();
   const filters = useMemo(() => paramsToFilters(urlSearch), [urlSearch]);
 
   const update = useCallback(
@@ -47,9 +45,12 @@ export function useExplorer(urlSearch: string): ExplorerState {
         next.page = 1;
       }
       const params = filtersToParams(next);
-      router.push(params ? `/?${params}` : "/", { scroll: false });
+      const url = params
+        ? `${window.location.pathname}?${params}`
+        : window.location.pathname;
+      window.history.pushState(null, "", url);
     },
-    [filters, router],
+    [filters],
   );
 
   const setFilter = useCallback(
@@ -82,8 +83,11 @@ export function useExplorer(urlSearch: string): ExplorerState {
       sort: "sno",
       page: 1,
     });
-    router.push(params ? `/?${params}` : "/", { scroll: false });
-  }, [filters, router]);
+    const url = params
+      ? `${window.location.pathname}?${params}`
+      : window.location.pathname;
+    window.history.pushState(null, "", url);
+  }, [filters]);
 
   const urlFor = useCallback(
     (patch: Partial<FilterState>) => {
