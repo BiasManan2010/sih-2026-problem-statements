@@ -47,7 +47,10 @@ export function useExplorer(urlSearch: string): ExplorerState {
         next.page = 1;
       }
       const params = filtersToParams(next);
-      router.push(params ? `/?${params}` : "/", { scroll: false });
+      const url = params
+        ? `${window.location.pathname}?${params}`
+        : window.location.pathname;
+      router.push(url, { scroll: false });
     },
     [filters, router],
   );
@@ -82,7 +85,10 @@ export function useExplorer(urlSearch: string): ExplorerState {
       sort: "sno",
       page: 1,
     });
-    router.push(params ? `/?${params}` : "/", { scroll: false });
+    const url = params
+      ? `${window.location.pathname}?${params}`
+      : window.location.pathname;
+    router.push(url, { scroll: false });
   }, [filters, router]);
 
   const urlFor = useCallback(
