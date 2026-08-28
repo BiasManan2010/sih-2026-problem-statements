@@ -102,7 +102,10 @@ export function filtersToParams(f: FilterState): string {
   const params = new URLSearchParams();
   if (f.q) params.set("q", f.q);
   if (f.categories.length === 1) params.set("cat", f.categories[0]);
-  if (f.themes.length > 0) params.set("theme", f.themes.join(","));
+  // Repeat the param. Theme names contain commas, so join/split would break them.
+  for (const theme of f.themes) {
+    params.append("theme", theme);
+  }
   if (f.org) params.set("org", f.org);
   if (f.hasDataset) params.set("dataset", "1");
   if (f.sort !== "sno") params.set("sort", f.sort);
@@ -119,9 +122,7 @@ export function paramsToFilters(search: string): FilterState {
   return {
     q: params.get("q") ?? "",
     categories,
-    themes: (params.get("theme") ?? "")
-      .split(",")
-      .filter(Boolean),
+    themes: params.getAll("theme").filter(Boolean),
     org: params.get("org") ?? "",
     hasDataset: params.get("dataset") === "1",
     sort: (params.get("sort") as SortKey) || "sno",
