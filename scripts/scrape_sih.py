@@ -30,6 +30,7 @@ import time
 import urllib.error
 import urllib.request
 from datetime import date, datetime
+from http.cookiejar import CookieJar
 from pathlib import Path
 
 try:
@@ -78,23 +79,35 @@ def fix_text(text: str) -> str:
 def fetch_html(url: str, attempts: int = 5) -> str:
     """Fetch HTML with browser-like headers and exponential backoff.
 
-    The SIH portal is hosted behind Apache and occasionally rate-limits
-    GitHub Actions shared runners. Using realistic browser headers and
-    longer timeouts improves success rate on CI.
+    The SIH portal sits behind an Azure Application Gateway / WAF that
+    blocks bare urllib requests from CI runners. We impersonate a real
+    browser as closely as possible, including sec-ch-* headers and
+    cookie handling, to pass through.
     """
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "en-US,en;q=0.9",
         "Referer": "https://sih.gov.in/",
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-User": "?1",
+        "Sec-Ch-Ua": '"Chromium";v="126", "Google Chrome";v="126", "Not.A/Brand";v="99"',
+        "Sec-Ch-Ua-Mobile": "?0",
+        "Sec-Ch-Ua-Platform": '"Windows"',
+        "Cache-Control": "max-age=0",
     }
+    cookie_jar = CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
     last_err = None
     for i in range(attempts):
         try:
             req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=90) as resp:
+            with opener.open(req, timeout=90) as resp:
                 status = getattr(resp, "status", 200)
                 if status >= 400:
                     raise RuntimeError(f"HTTP {status}")

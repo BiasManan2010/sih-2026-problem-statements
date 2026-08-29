@@ -3,13 +3,13 @@
 [![Data refresh](https://github.com/vedantchalke36/sih-2026-problem-statements/actions/workflows/refresh-data.yml/badge.svg)](https://github.com/vedantchalke36/sih-2026-problem-statements/actions/workflows/refresh-data.yml)
 [![CI](https://github.com/vedantchalke36/sih-2026-problem-statements/actions/workflows/ci.yml/badge.svg)](https://github.com/vedantchalke36/sih-2026-problem-statements/actions/workflows/ci.yml)
 
-All **226 problem statements** from [Smart India Hackathon 2026](https://www.sih.gov.in/sih2026PS) in one searchable place - clean markdown, JSON and CSV, plus a fast bilingual web app to browse, filter and shortlist them.
+All **229 problem statements** from [Smart India Hackathon 2026](https://www.sih.gov.in/sih2026PS) in one searchable place - clean markdown, JSON and CSV, plus a fast bilingual web app to browse, filter and shortlist them.
 
 ## Contents
 
 | Path | What it is |
 |---|---|
-| [`ps_2026/`](ps_2026/) | 226 markdown files (`SIH26001.md` ... `SIH26226.md`) + index |
+| [`ps_2026/`](ps_2026/) | 229 markdown files (`SIH26001.md` ... `SIH26229.md`) + index |
 | [`data/sih2026_ps.json`](data/sih2026_ps.json) | Full structured export (all fields incl. descriptions) |
 | [`data/sih2026_ps.csv`](data/sih2026_ps.csv) | Same data, spreadsheet-friendly |
 | [`data/changelog/`](data/changelog/) | Field-level diffs of every daily data update |
@@ -44,10 +44,10 @@ npm run lint
 
 | Metric | Value |
 |---|---|
-| Total problem statements | 226 |
-| Software | 172 |
+| Total problem statements | 229 |
+| Software | 175 |
 | Hardware | 54 |
-| Themes | 18 |
+| Themes | 17 |
 | Organizations | 30 |
 | Source | [sih.gov.in/sih2026PS](https://sih.gov.in/sih2026PS) |
 
