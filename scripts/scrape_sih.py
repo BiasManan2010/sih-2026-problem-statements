@@ -25,6 +25,7 @@ import gzip
 import html
 import json
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -77,66 +78,47 @@ def fix_text(text: str) -> str:
 
 
 def fetch_html(url: str, attempts: int = 5) -> str:
-    """Fetch HTML with browser-like headers and exponential backoff.
+    """Fetch HTML using curl with browser-like TLS fingerprint.
 
     The SIH portal sits behind an Azure Application Gateway / WAF that
-    blocks bare urllib requests from CI runners. We impersonate a real
-    browser as closely as possible, including sec-ch-* headers and
-    cookie handling, to pass through.
+    blocks Python urllib/requests from CI runners. curl's TLS fingerprint
+    matches real browsers much better, so we shell out to it.
     """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Referer": "https://sih.gov.in/",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "same-origin",
-        "Sec-Fetch-User": "?1",
-        "Sec-Ch-Ua": '"Chromium";v="126", "Google Chrome";v="126", "Not.A/Brand";v="99"',
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Platform": '"Windows"',
-        "Cache-Control": "max-age=0",
-    }
-    cookie_jar = CookieJar()
-    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
+    cmd = [
+        "curl", "-sS", "-L",
+        "--max-time", "90",
+        "--compressed",
+        "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "-H", "Accept-Language: en-US,en;q=0.9",
+        "-H", "Referer: https://sih.gov.in/",
+        "-H", "Sec-Fetch-Dest: document",
+        "-H", "Sec-Fetch-Mode: navigate",
+        "-H", "Sec-Fetch-Site: same-origin",
+        "-H", "Sec-Ch-Ua: \"Chromium\";v=\"126\", \"Google Chrome\";v=\"126\", \"Not.A/Brand\";v=\"99\"",
+        "-H", "Sec-Ch-Ua-Mobile: ?0",
+        "-H", "Sec-Ch-Ua-Platform: \"Windows\"",
+        url,
+    ]
     last_err = None
     for i in range(attempts):
         try:
-            req = urllib.request.Request(url, headers=headers)
-            with opener.open(req, timeout=90) as resp:
-                status = getattr(resp, "status", 200)
-                if status >= 400:
-                    raise RuntimeError(f"HTTP {status}")
-                data = resp.read()
-                # Handle gzip if server unexpectedly returns it
-                encoding = resp.headers.get("Content-Encoding", "")
-                if encoding == "gzip":
-                    data = gzip.decompress(data)
-                text = data.decode("utf-8", errors="replace")
-                if not text.strip():
-                    raise RuntimeError("Empty response body")
-                if "dataTablePS" not in text and "<table" not in text:
-                    # Might be a Cloudflare challenge or error page - log snippet
-                    snippet = text[:500].replace("\n", " ")
-                    print(f"  warning: response missing expected table (snippet: {snippet[:200]}...)")
-                return text
+            result = subprocess.run(cmd, capture_output=True, timeout=120)
+            if result.returncode != 0:
+                stderr = result.stderr.decode("utf-8", errors="replace").strip()
+                raise RuntimeError(f"curl exited with code {result.returncode}: {stderr}")
+            text = result.stdout.decode("utf-8", errors="replace")
+            if not text.strip():
+                raise RuntimeError("Empty response body")
+            if "dataTablePS" not in text and "<table" not in text:
+                snippet = text[:500].replace("\n", " ")
+                print(f"  warning: response missing expected table (snippet: {snippet[:200]}...)")
+            return text
         except Exception as e:  # noqa: BLE001 - network retries
             last_err = e
-            # Provide detailed error for HTTP errors
             err_detail = str(e)
-            try:
-                if isinstance(e, urllib.error.HTTPError):
-                    body = e.read().decode("utf-8", errors="replace")[:500] if hasattr(e, "read") else ""
-                    err_detail = f"HTTP {e.code} {e.reason} - {body[:200]}"
-            except Exception:
-                pass
             if i < attempts - 1:
                 wait = 10 * (2**i)  # 10, 20, 40, 80, 160
-                # Cap wait to avoid exceeding workflow timeout
                 wait = min(wait, 60)
                 print(f"  fetch attempt {i + 1}/{attempts} failed ({err_detail}); retrying in {wait}s")
                 time.sleep(wait)
