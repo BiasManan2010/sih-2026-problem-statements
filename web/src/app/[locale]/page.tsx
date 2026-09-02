@@ -54,7 +54,7 @@ export default async function HomePage({
           "@type": "Dataset",
           name: "SIH 2026 Problem Statements",
           description:
-            "All 226 Smart India Hackathon 2026 problem statements with titles, descriptions, organizations, themes and deadlines.",
+            "All 229 Smart India Hackathon 2026 problem statements with titles, descriptions, organizations, themes and deadlines.",
           url: "https://sih2026.vuce.in",
           creator: {
             "@type": "Organization",

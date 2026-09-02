@@ -5,7 +5,7 @@ import { stats } from "@/lib/ps";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt =
-  "SIH 2026 Problem Statements - all 226 Smart India Hackathon problem statements in one searchable place";
+  "SIH 2026 Problem Statements - all 229 Smart India Hackathon problem statements in one searchable place";
 
 export default function OpengraphImage() {
   return new ImageResponse(
